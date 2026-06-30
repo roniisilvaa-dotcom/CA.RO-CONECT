@@ -3,6 +3,8 @@ import sql from '../../../lib/db'
 import { processMessage } from '../../../lib/ai'
 import { sendText } from '../../../lib/whatsapp'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request) {
   const payload = await request.json()
 
