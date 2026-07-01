@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Camila Rocha · Consultora de Imagem</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════
+   DESIGN TOKENS — identidade Camila Rocha
+   Borgonha escuro (Instagram highlights) + creme + dourado suave
+══════════════════════════════════════ */
+:root{
+  /* BRAND */
+  --wine:     #3D1826;   /* borgonha principal — círculos IG */
+  --wine2:    #2D1019;   /* borgonha mais escuro */
+  --wine3:    #5C2438;   /* borgonha médio */
+  --wine-lt:  #7A3050;   /* borgonha claro */
+  --cream:    #FAF5EF;   /* fundo geral */
+  --cream2:   #F3EBE0;   /* fundo cards */
+  --ivory:    #FFFFFF;
+  --gold:     #C4924A;   /* dourado quente */
+  --gold-lt:  #DEB87A;   /* dourado claro */
+  --gold-dk:  #8A6230;   /* dourado escuro */
+  --text:     #2A1518;   /* texto principal */
+  --muted:    #8A6A72;   /* texto secundário */
+  --border:   rgba(61,24,38,.12);
+  --sh:       0 2px 18px rgba(61,24,38,.08);
+}
+
+/* ══════════ BASE ══════════ */
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--cream);color:var(--text);font-family:'Jost',sans-serif;font-weight:300;overflow-x:hidden}
+a{text-decoration:none;color:inherit}
+button{font-family:'Jost',sans-serif;cursor:pointer;border:none;outline:none;background:none}
+img{display:block}
+
+/* ══════════ HERO ══════════ */
+.hero{
+  position:relative;
+  background:linear-gradient(160deg, var(--wine2) 0%, var(--wine) 50%, var(--wine3) 100%);
+  overflow:hidden;
+}
+/* ornamento decorativo fundo */
+.hero::before{
+  content:'';position:absolute;
+  width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle, rgba(196,146,74,.14) 0%, transparent 70%);
+  top:-60px;right:-60px;pointer-events:none;
+}
+.hero::after{
+  content:'';position:absolute;
+  width:180px;height:180px;border-radius:50%;
+  background:radial-gradient(circle, rgba(196,146,74,.08) 0%, transparent 70%);
+  bottom:-40px;left:-20px;pointer-events:none;
+}
+.hero-inner{
+  position:relative;z-index:1;
+  display:flex;flex-direction:column;align-items:center;
+  padding:44px 24px 38px;text-align:center;
+}
+
+/* avatar */
+.ava-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px}
+.ava-outer{
+  width:100px;height:100px;border-radius:50%;
+  background:linear-gradient(145deg, var(--gold-lt), var(--gold-dk));
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:400;
+  color:var(--wine2);letter-spacing:1px;position:relative;
+}
+/* foto real — substituir src quando disponível */
+.ava-photo{
+  position:absolute;inset:0;border-radius:50%;overflow:hidden;
+}
+.ava-photo img{width:100%;height:100%;object-fit:cover}
+.ava-ring1{position:absolute;inset:-6px;border-radius:50%;border:1.5px solid rgba(196,146,74,.45)}
+.ava-ring2{position:absolute;inset:-12px;border-radius:50%;border:1px solid rgba(196,146,74,.18)}
+/* "verified" badge */
+.ava-badge{
+  position:absolute;bottom:0;right:0;
+  width:26px;height:26px;border-radius:50%;
+  background:var(--gold);border:2px solid var(--wine2);
+  display:flex;align-items:center;justify-content:center;
+}
+.ava-badge svg{width:12px;height:12px;fill:var(--wine2)}
+
+/* nome e handle */
+.hero-name{
+  font-family:'Cormorant Garamond',serif;
+  font-size:36px;font-weight:400;color:#FFF;
+  letter-spacing:.01em;line-height:1.0;margin-bottom:5px;
+}
+.hero-name em{font-style:italic;color:var(--gold-lt)}
+.hero-handle{
+  font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;
+  color:rgba(255,255,255,.38);margin-bottom:16px;
+}
+
+/* ornamento entre handle e bio */
+.hero-orn{
+  display:flex;align-items:center;gap:10px;margin-bottom:14px;width:100%;max-width:280px;
+}
+.orn-line{flex:1;height:1px}
+.orn-line.l{background:linear-gradient(90deg,transparent,rgba(196,146,74,.5))}
+.orn-line.r{background:linear-gradient(90deg,rgba(196,146,74,.5),transparent)}
+.orn-star{font-size:11px;color:var(--gold-lt);opacity:.8}
+
+.hero-bio{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:16.5px;color:rgba(255,255,255,.65);line-height:1.75;
+  max-width:300px;margin-bottom:24px;
+}
+
+/* stats */
+.hero-stats{
+  display:flex;width:100%;max-width:330px;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);
+  border-radius:16px;overflow:hidden;margin-bottom:22px;
+}
+.hst{flex:1;padding:13px 6px;text-align:center;position:relative}
+.hst+.hst::before{content:'';position:absolute;left:0;top:22%;bottom:22%;width:1px;background:rgba(255,255,255,.1)}
+.hst-n{
+  font-family:'Cormorant Garamond',serif;font-size:24px;
+  color:var(--gold-lt);font-weight:400;line-height:1;margin-bottom:3px;
+}
+.hst-l{font-size:10px;color:rgba(255,255,255,.38);line-height:1.4}
+
+/* social icons */
+.hero-soc{display:flex;gap:11px;margin-bottom:22px}
+.hsi{
+  width:44px;height:44px;border-radius:50%;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+.hsi:hover{background:rgba(196,146,74,.25);border-color:rgba(196,146,74,.5);transform:translateY(-2px)}
+.hsi svg{width:18px;height:18px;fill:rgba(255,255,255,.75)}
+
+/* CTA */
+.hero-cta{display:flex;gap:10px;width:100%;max-width:330px}
+.cta-main{
+  flex:1;padding:15px;border-radius:14px;text-align:center;
+  background:linear-gradient(135deg,var(--gold),var(--gold-dk));
+  color:var(--wine2);font-size:12.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  transition:opacity .2s;
+}
+.cta-main:active{opacity:.85}
+.cta-wa{
+  width:52px;height:52px;flex-shrink:0;border-radius:14px;
+  background:rgba(37,211,102,.15);border:1px solid rgba(37,211,102,.3);
+  display:flex;align-items:center;justify-content:center;
+  transition:background .2s;
+}
+.cta-wa svg{width:22px;height:22px;fill:#25D366}
+.cta-wa:hover{background:rgba(37,211,102,.25)}
+
+/* linha divisória dourada */
+.hero-div{height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+
+/* ══════════ SECTION ══════════ */
+.s{padding:30px 20px 0}
+.sh{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.sh-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--gold);flex-shrink:0;
+}
+.sh-txt{
+  font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--wine3);font-weight:500;
+}
+.sh::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--gold-lt),transparent);opacity:.5}
+
+/* ══════════ QUIZ ══════════ */
+.quiz{
+  background:linear-gradient(150deg,var(--wine2) 0%,var(--wine) 100%);
+  border-radius:20px;border:1px solid rgba(196,146,74,.2);
+  padding:26px 20px;position:relative;overflow:hidden;
+}
+.quiz::after{
+  content:'✦';
+  position:absolute;right:14px;bottom:10px;font-size:64px;
+  color:rgba(196,146,74,.06);pointer-events:none;line-height:1;
+}
+.quiz-eyebrow{
+  font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--gold-lt);margin-bottom:10px;font-weight:400;
+}
+.quiz-title{
+  font-family:'Cormorant Garamond',serif;font-size:26px;
+  color:#FFF;line-height:1.25;margin-bottom:8px;font-weight:400;
+}
+.quiz-title em{font-style:italic;color:var(--gold-lt)}
+.quiz-sub{font-size:13px;color:rgba(255,255,255,.45);line-height:1.7;margin-bottom:22px}
+.quiz-btn-start{
+  width:100%;padding:16px;border-radius:13px;
+  background:linear-gradient(135deg,var(--gold),var(--gold-dk));
+  color:var(--wine2);font-size:13px;font-weight:600;
+  letter-spacing:.07em;text-transform:uppercase;
+  transition:opacity .2s;
+}
+.quiz-btn-start:active{opacity:.85}
+
+/* progresso */
+.qprog{display:flex;gap:6px;margin-bottom:18px}
+.qpd{flex:1;height:3px;border-radius:4px;background:rgba(255,255,255,.1);transition:background .3s}
+.qpd.on{background:var(--gold)}
+
+/* pergunta */
+.qstep{display:none}
+.qstep.active{display:block}
+.qquestion{font-size:15px;color:rgba(255,255,255,.88);margin-bottom:14px;font-weight:400;line-height:1.55}
+.qopts{display:flex;flex-direction:column;gap:9px}
+.qopt{
+  padding:13px 16px;border-radius:12px;text-align:left;
+  background:rgba(255,255,255,.06);border:1px solid rgba(196,146,74,.2);
+  font-size:13.5px;color:rgba(255,255,255,.72);transition:all .17s;
+}
+.qopt:hover,.qopt.sel{background:rgba(196,146,74,.2);border-color:var(--gold);color:#FFF}
+
+/* resultado */
+.qresult{display:none;text-align:center}
+.qresult.show{display:block}
+.qres-icon{font-size:48px;margin-bottom:14px;animation:popIn .4s ease}
+@keyframes popIn{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+.qres-eyebrow{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold-lt);margin-bottom:7px;font-weight:400}
+.qres-name{font-family:'Cormorant Garamond',serif;font-size:28px;font-style:italic;color:#FFF;margin-bottom:10px;line-height:1.2}
+.qres-txt{font-size:13px;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:22px}
+.qres-cta{
+  display:block;padding:16px;border-radius:13px;
+  background:linear-gradient(135deg,var(--gold),var(--gold-dk));
+  color:var(--wine2);font-size:13px;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;text-align:center;
+}
+.qres-reset{display:block;font-size:12px;color:rgba(255,255,255,.22);margin-top:14px;cursor:pointer}
+
+/* ══════════ CARROSSEL CURSOS ══════════ */
+.courses{
+  display:flex;gap:12px;overflow-x:auto;
+  padding:4px 0 12px;scrollbar-width:none;
+  scroll-snap-type:x mandatory;
+}
+.courses::-webkit-scrollbar{display:none}
+.cc{
+  min-width:142px;max-width:142px;
+  background:var(--ivory);border-radius:16px;overflow:hidden;
+  border:1px solid var(--border);box-shadow:var(--sh);
+  flex-shrink:0;scroll-snap-align:start;
+  transition:transform .18s;display:block;color:inherit;
+}
+.cc:active{transform:scale(.96)}
+.cc-img{
+  height:105px;position:relative;overflow:hidden;
+  display:flex;align-items:center;justify-content:center;
+}
+.cc-bg{position:absolute;inset:0}
+.cc-txt{position:relative;z-index:1;text-align:center;padding:0 8px}
+.cc-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:17px;font-weight:300;font-style:italic;
+  color:rgba(255,255,255,.92);line-height:1.25;
+}
+.cc-badge{
+  position:absolute;top:7px;left:7px;z-index:2;
+  font-size:8.5px;font-weight:600;padding:3px 8px;
+  border-radius:20px;letter-spacing:.05em;text-transform:uppercase;
+}
+.cc-badge.hot{background:var(--gold);color:var(--wine2)}
+.cc-badge.new{background:#D94040;color:#FFF}
+.cc-badge.prem{background:var(--wine3);color:var(--gold-lt);border:1px solid rgba(196,146,74,.3)}
+.cc-body{padding:10px 12px 13px}
+.cc-name{font-size:12px;font-weight:500;color:var(--text);line-height:1.35;margin-bottom:4px}
+.cc-cat{font-size:10px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:9px}
+.cc-btn{
+  display:block;background:var(--wine);color:rgba(255,255,255,.9);
+  text-align:center;padding:8px;border-radius:8px;
+  font-size:11px;font-weight:500;letter-spacing:.04em;
+}
+
+/* gradientes dos cards */
+.g-wine1{background:linear-gradient(140deg,#2D1019 0%,#5C2438 100%)}
+.g-wine2{background:linear-gradient(140deg,#1E0A1A 0%,#4A1A40 100%)}
+.g-wine3{background:linear-gradient(140deg,#2D1019 0%,#3D2838 100%)}
+.g-wine4{background:linear-gradient(140deg,#1A0818 0%,#482030 100%)}
+.g-wine5{background:linear-gradient(140deg,#261018 0%,#503040 100%)}
+.g-wine6{background:linear-gradient(140deg,#1E1018 0%,#3A2030 100%)}
+.g-wine7{background:linear-gradient(140deg,#1A0C14 0%,#402030 100%)}
+.g-wine8{background:linear-gradient(140deg,#2A0E20 0%,#5A2845 100%)}
+
+/* ══════════ YOUTUBE ══════════ */
+.yt-banner{
+  background:var(--wine2);border-radius:18px;overflow:hidden;
+  border:1px solid rgba(200,40,40,.2);position:relative;display:block;
+}
+.yt-tag{
+  position:absolute;top:10px;left:10px;z-index:2;
+  background:#E63030;color:#FFF;font-size:9.5px;font-weight:700;
+  padding:4px 10px;border-radius:20px;letter-spacing:.08em;text-transform:uppercase;
+  animation:pls 2s ease-in-out infinite;
+}
+@keyframes pls{0%,100%{opacity:1}50%{opacity:.55}}
+.yt-thumb{width:100%;height:155px;object-fit:cover;opacity:.85}
+.yt-play-ov{
+  position:absolute;top:0;left:0;right:0;bottom:155px;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(to bottom,rgba(0,0,0,.1),rgba(0,0,0,.35));
+}
+.yt-play-ov svg{width:56px;height:56px}
+.yt-info{padding:14px 18px 18px}
+.yt-lbl{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#E63030;margin-bottom:5px}
+.yt-title{
+  font-family:'Cormorant Garamond',serif;font-size:18px;
+  color:#FFF;line-height:1.35;font-weight:400;
+}
+
+.vids-row{
+  display:flex;gap:12px;overflow-x:auto;
+  padding:2px 0 6px;margin-top:16px;scrollbar-width:none;
+}
+.vids-row::-webkit-scrollbar{display:none}
+.vid{min-width:148px;flex-shrink:0;display:block;color:inherit}
+.vid-th{
+  width:148px;height:96px;border-radius:11px;overflow:hidden;
+  position:relative;margin-bottom:8px;background:var(--wine2);
+}
+.vid-th img{width:100%;height:100%;object-fit:cover}
+.vid-play{
+  position:absolute;inset:0;background:rgba(61,24,38,.3);
+  display:flex;align-items:center;justify-content:center;
+}
+.vid-play svg{width:28px;height:28px;fill:#FFF}
+.vid-lbl{
+  font-size:12px;color:var(--muted);line-height:1.45;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.yt-more{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  margin-top:16px;padding:13px;border-radius:13px;
+  background:rgba(230,48,48,.07);border:1px solid rgba(230,48,48,.18);
+  font-size:13px;font-weight:500;color:#D04040;
+}
+
+/* ══════════ AGENDA ══════════ */
+.agenda{
+  background:var(--ivory);border-radius:18px;overflow:hidden;
+  border:1px solid var(--border);box-shadow:var(--sh);
+}
+.ag-head{
+  background:linear-gradient(135deg,var(--wine2),var(--wine));
+  padding:18px 20px;display:flex;align-items:center;gap:14px;
+}
+.ag-icon{
+  width:46px;height:46px;border-radius:13px;flex-shrink:0;
+  background:rgba(196,146,74,.2);border:1px solid rgba(196,146,74,.3);
+  display:flex;align-items:center;justify-content:center;
+}
+.ag-icon svg{width:22px;height:22px;fill:var(--gold-lt)}
+.ag-title{font-family:'Cormorant Garamond',serif;font-size:20px;color:#FFF;font-weight:400;margin-bottom:2px}
+.ag-sub{font-size:12px;color:rgba(255,255,255,.4)}
+.ag-steps{display:flex;border-bottom:1px solid var(--border)}
+.ags{
+  flex:1;padding:11px 4px;text-align:center;
+  font-size:10.5px;color:var(--muted);
+  border-bottom:2px solid transparent;transition:all .2s;
+}
+.ags.on{color:var(--wine3);border-color:var(--wine3);font-weight:500}
+.ags-num{display:block;font-size:14px;margin-bottom:2px}
+.ag-body{padding:18px 20px}
+.cal-month{font-size:13px;font-weight:500;color:var(--text);margin-bottom:12px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-dn{text-align:center;font-size:9.5px;color:var(--muted);padding:4px 0;letter-spacing:.05em}
+.cal-d{text-align:center;padding:9px 2px;border-radius:8px;font-size:13px;color:var(--muted)}
+.cal-d.av{background:rgba(61,24,38,.07);color:var(--wine3);cursor:pointer;font-weight:500}
+.cal-d.av:hover,.cal-d.sel{background:var(--wine);color:#FFF;font-weight:600}
+.ag-cta{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  margin-top:16px;background:var(--wine);color:rgba(255,255,255,.9);
+  padding:15px;border-radius:12px;font-size:13px;font-weight:500;letter-spacing:.03em;
+}
+.ag-cta svg{width:18px;height:18px;fill:#25D366}
+
+/* ══════════ COMUNIDADE ══════════ */
+.com{
+  background:linear-gradient(150deg,var(--wine2),var(--wine));
+  border-radius:20px;border:1px solid rgba(196,146,74,.18);
+  padding:26px 20px;position:relative;overflow:hidden;text-align:center;
+}
+.com::before{
+  content:'';position:absolute;top:-50px;right:-50px;
+  width:160px;height:160px;border-radius:50%;
+  background:radial-gradient(circle,rgba(196,146,74,.14),transparent 65%);
+}
+.com-emoji{font-size:40px;margin-bottom:13px}
+.com-title{
+  font-family:'Cormorant Garamond',serif;font-size:26px;
+  color:#FFF;font-style:italic;font-weight:300;margin-bottom:8px;line-height:1.25;
+}
+.com-sub{font-size:13px;color:rgba(255,255,255,.45);line-height:1.7;margin-bottom:22px}
+.com-feats{display:flex;flex-direction:column;gap:10px;margin-bottom:24px;text-align:left}
+.cf{
+  display:flex;align-items:center;gap:13px;
+  background:rgba(255,255,255,.06);border-radius:12px;padding:13px 15px;
+}
+.cf-em{font-size:22px;flex-shrink:0}
+.cf-title{font-size:13px;color:rgba(255,255,255,.82);font-weight:400;margin-bottom:2px}
+.cf-sub{font-size:11.5px;color:rgba(255,255,255,.38);line-height:1.5}
+.com-cta{
+  display:block;padding:16px;border-radius:13px;
+  background:linear-gradient(135deg,var(--gold),var(--gold-dk));
+  color:var(--wine2);font-size:13px;font-weight:700;
+  letter-spacing:.07em;text-transform:uppercase;
+}
+
+/* ══════════ DEPOIMENTOS ══════════ */
+.testi-row{
+  display:flex;gap:13px;overflow-x:auto;padding:4px 0 8px;
+  scrollbar-width:none;
+}
+.testi-row::-webkit-scrollbar{display:none}
+.tc{
+  min-width:252px;background:var(--ivory);border-radius:16px;
+  border:1px solid var(--border);padding:18px;flex-shrink:0;
+  box-shadow:var(--sh);
+}
+.tc-stars{color:var(--gold);font-size:13px;letter-spacing:3px;margin-bottom:11px}
+.tc-text{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:15px;color:var(--text);line-height:1.65;margin-bottom:14px;
+}
+.tc-foot{display:flex;align-items:center;gap:11px}
+.tc-ava{
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--wine3),var(--wine));
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:500;color:rgba(255,255,255,.9);
+}
+.tc-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px}
+.tc-city{font-size:11px;color:var(--muted)}
+
+/* ══════════ WHATSAPP ══════════ */
+.wa-list{display:flex;flex-direction:column;gap:11px}
+.wa{
+  display:flex;align-items:center;gap:14px;
+  background:var(--ivory);border-radius:15px;padding:14px 16px;
+  border:1px solid var(--border);box-shadow:var(--sh);
+  transition:transform .15s;
+}
+.wa:active{transform:scale(.98)}
+.wa-ic{
+  width:46px;height:46px;min-width:46px;border-radius:13px;
+  background:#25D366;display:flex;align-items:center;justify-content:center;
+}
+.wa-ic svg{width:23px;height:23px;fill:#FFF}
+.wa-info{flex:1}
+.wa-t{font-size:13.5px;font-weight:500;color:var(--text);margin-bottom:2px}
+.wa-s{font-size:11.5px;color:var(--muted)}
+.wa-arr{color:var(--wine-lt);font-size:22px;font-weight:300}
+
+/* ══════════ FOOTER ══════════ */
+.foot{
+  text-align:center;padding:32px 20px 56px;margin-top:32px;
+  border-top:1px solid var(--border);
+}
+.foot-logo{
+  font-family:'Cormorant Garamond',serif;
+  font-size:14px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:5px;
+}
+.foot-logo b{color:var(--wine3);font-weight:400}
+.foot-copy{font-size:10.5px;color:rgba(138,106,114,.4);letter-spacing:.04em}
+
+/* ══════════ ANIMATIONS ══════════ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.hero{animation:fadeUp .5s ease both}
+.s{animation:fadeUp .5s ease .12s both}
+
+/* quiz body hidden by default */
+.quiz-body{display:none}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- HERO                                           -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="hero">
+  <div class="hero-inner">
+
+    <div class="ava-wrap">
+      <div class="ava-ring2"></div>
+      <div class="ava-ring1"></div>
+      <div class="ava-outer">
+        CR
+        <!-- Quando tiver foto real:
+        <div class="ava-photo"><img src="foto-camila.jpg" alt="Camila Rocha"></div>
+        -->
+      </div>
+      <div class="ava-badge">
+        <svg viewBox="0 0 12 12"><path d="M5 8.5L2.5 6 1.5 7 5 10.5l6-6L10 3.5z"/></svg>
+      </div>
+    </div>
+
+    <h1 class="hero-name">Camila <em>Rocha</em></h1>
+    <p class="hero-handle">@eusoucamilarocha</p>
+
+    <div class="hero-orn">
+      <div class="orn-line l"></div>
+      <span class="orn-star">✦</span>
+      <div class="orn-line r"></div>
+    </div>
+
+    <p class="hero-bio">"Eleve sua imagem com elegância,<br>feminilidade e propósito cristão"</p>
+
+    <div class="hero-stats">
+      <div class="hst">
+        <div class="hst-n">10+</div>
+        <div class="hst-l">anos de<br>experiência</div>
+      </div>
+      <div class="hst">
+        <div class="hst-n">15</div>
+        <div class="hst-l">países<br>atendidos</div>
+      </div>
+      <div class="hst">
+        <div class="hst-n">500+</div>
+        <div class="hst-l">mulheres<br>transformadas</div>
+      </div>
+    </div>
+
+    <div class="hero-soc">
+      <a class="hsi" href="https://www.instagram.com/eusoucamilarocha/" target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+      </a>
+      <a class="hsi" href="https://www.youtube.com/@eusoucamilarocha" target="_blank">
+        <svg viewBox="0 0 24 24" style="fill:#FF4444"><path d="M23.5 6.19a3.02 3.02 0 00-2.12-2.14C19.54 3.5 12 3.5 12 3.5s-7.54 0-9.38.55A3.02 3.02 0 00.5 6.19 31.66 31.66 0 000 12a31.66 31.66 0 00.5 5.81 3.02 3.02 0 002.12 2.14C4.46 20.5 12 20.5 12 20.5s7.54 0 9.38-.55a3.02 3.02 0 002.12-2.14A31.66 31.66 0 0024 12a31.66 31.66 0 00-.5-5.81zM9.75 15.02V8.98L15.5 12l-5.75 3.02z"/></svg>
+      </a>
+      <a class="hsi" href="https://api.whatsapp.com/send?phone=5511912142810" target="_blank">
+        <svg viewBox="0 0 24 24" style="fill:#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      </a>
+    </div>
+
+    <div class="hero-cta">
+      <a class="cta-main" href="https://api.whatsapp.com/send?phone=5511912142810&text=Oi%20Camila!%20Vi%20seu%20link%20na%20bio%20e%20quero%20transformar%20meu%20estilo%20%F0%9F%8C%B8" target="_blank">Quero transformar meu estilo</a>
+      <a class="cta-wa" href="https://api.whatsapp.com/send?phone=5511912142810" target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      </a>
+    </div>
+  </div>
+  <div class="hero-div"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- 1.2 QUIZ                                       -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="s">
+  <div class="sh"><div class="sh-dot"></div><span class="sh-txt">Quiz personalizado</span></div>
+  <div class="quiz">
+    <div id="q-intro">
+      <div class="quiz-eyebrow">✦ Responda 3 perguntas</div>
+      <h2 class="quiz-title">Qual caminho é<br><em>feito para você?</em></h2>
+      <p class="quiz-sub">Descubra em 60 segundos qual transformação se encaixa no seu momento atual — sem julgamentos.</p>
+      <button class="quiz-btn-start" onclick="qStart()">Descobrir meu caminho →</button>
+    </div>
+
+    <div class="quiz-body" id="q-body">
+      <div class="qprog">
+        <div class="qpd on" id="qp1"></div>
+        <div class="qpd" id="qp2"></div>
+        <div class="qpd" id="qp3"></div>
+      </div>
+
+      <div class="qstep active" id="qs1">
+        <p class="qquestion">Como você se sente com seu estilo hoje?</p>
+        <div class="qopts">
+          <button class="qopt" onclick="qNext(2,'confusa')">😕 Me perco — não sei o que combina comigo</button>
+          <button class="qopt" onclick="qNext(2,'basico')">👗 Fico sempre no básico, quero mais elegância</button>
+          <button class="qopt" onclick="qNext(2,'fe')">🙏 Quero me vestir bem com modéstia cristã</button>
+          <button class="qopt" onclick="qNext(2,'profissional')">💼 Preciso melhorar minha imagem profissional</button>
+        </div>
+      </div>
+
+      <div class="qstep" id="qs2">
+        <p class="qquestion">O que mais te incomoda no dia a dia?</p>
+        <div class="qopts">
+          <button class="qopt" onclick="qNext(3,'guardaroupa')">👚 Guarda-roupa cheio e nada para usar</button>
+          <button class="qopt" onclick="qNext(3,'autoestima')">😞 Insegurança — nada parece ficar bem em mim</button>
+          <button class="qopt" onclick="qNext(3,'cores')">🎨 Não sei quais cores e estilos me favorecem</button>
+          <button class="qopt" onclick="qNext(3,'eventos')">✨ Dificuldade para me vestir em ocasiões especiais</button>
+        </div>
+      </div>
+
+      <div class="qstep" id="qs3">
+        <p class="qquestion">Qual é o seu sonho com seu estilo?</p>
+        <div class="qopts">
+          <button class="qopt" onclick="qResult('curso')">💫 Amar o que vejo no espelho todos os dias</button>
+          <button class="qopt" onclick="qResult('consultoria')">🌸 Ter um estilo elegante que represente quem sou</button>
+          <button class="qopt" onclick="qResult('comunidade')">🤝 Fazer parte de uma comunidade que me inspira</button>
+          <button class="qopt" onclick="qResult('youtube')">📺 Aprender dicas práticas de estilo gratuitamente</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="qresult" id="qr-curso">
+      <div class="qres-icon">🎓</div>
+      <div class="qres-eyebrow">Perfeito para você</div>
+      <div class="qres-name">Geração do Estilo</div>
+      <p class="qres-txt">Aprenda a se vestir com elegância e propósito cristão, descobrindo seu estilo único — no seu tempo, 100% online.</p>
+      <a class="qres-cta" href="https://api.whatsapp.com/send?phone=5511912142810&text=Oi!%20Fiz%20o%20quiz%20e%20quero%20saber%20mais%20sobre%20Gera%C3%A7%C3%A3o%20do%20Estilo%20%F0%9F%8C%B8" target="_blank">Quero conhecer o curso →</a>
+      <button class="qres-reset" onclick="qReset()">Refazer o quiz</button>
+    </div>
+    <div class="qresult" id="qr-consultoria">
+      <div class="qres-icon">👑</div>
+      <div class="qres-eyebrow">Ideal para você</div>
+      <div class="qres-name">Consultoria de Imagem</div>
+      <p class="qres-txt">Você precisa de um olhar exclusivo. Coloração pessoal, biotipo e criação do seu estilo com a Camila ao seu lado.</p>
+      <a class="qres-cta" href="https://api.whatsapp.com/send?phone=5511912142810&text=Oi!%20Fiz%20o%20quiz%20e%20quero%20agendar%20minha%20consultoria%20%F0%9F%8C%B8" target="_blank">Quero agendar →</a>
+      <button class="qres-reset" onclick="qReset()">Refazer o quiz</button>
+    </div>
+    <div class="qresult" id="qr-comunidade">
+      <div class="qres-icon">🌸</div>
+      <div class="qres-eyebrow">Feito para você</div>
+      <div class="qres-name">Nossa Comunidade</div>
+      <p class="qres-txt">Entre para o grupo de mulheres que se transformam juntas — dicas diárias, apoio e conteúdo exclusivo.</p>
+      <a class="qres-cta" href="https://api.whatsapp.com/send?phone=5511912142810&text=Oi!%20Fiz%20o%20quiz%20e%20quero%20entrar%20na%20comunidade%20%F0%9F%8C%B8" target="_blank">Entrar na comunidade →</a>
+      <button class="qres-reset" onclick="qReset()">Refazer o quiz</button>
+    </div>
+    <div class="qresult" id="qr-youtube">
+      <div class="qres-icon">📺</div>
+      <div class="qres-eyebrow">Comece por aqui</div>
+      <div class="qres-name">Série Gratuita de Estilo</div>
+      <p class="qres-txt">A Camila tem uma série completa e gratuita no YouTube. Comece agora a transformar seu estilo!</p>
+      <a class="qres-cta" href="https://www.youtube.com/@eusoucamilarocha" target="_blank">Ver os vídeos gratuitos →</a>
+      <button class="qres-reset" onclick="qReset()">Refazer o quiz</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- 1.3 CARROSSEL CURSOS                           -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="s">
+  <div class="sh"><div class="sh-dot"></div><span class="sh-txt">Meus cursos</span></div>
+  <div class="courses">
+
+    <a class="cc" href="https://pay.kiwify.com.br/UDzj8bK" target="_blank">
+      <div class="cc-img"><div class="cc-bg g-wine1"></div>
+        <div class="cc-txt"><div class="cc-title">Geração<br>do Estilo</div></div>
+        <div class="cc-badge hot">🔥 Top</div>
+      </div>
+      <div class="cc-body">
+        <div class="cc-name">Geração do Estilo</div>
+        <div class="cc-cat">Curso Completo</div>
+        <div class="cc-btn">Conhecer →</div>
+      </div>
+    </a>
+
+    <a class="cc" href="https://api.whatsapp.com/send?phone=5511912142810&text=Oi!%20Quero%20saber%20sobre%20Consultoria%20de%20Imagem%20%F0%9F%8C%B8" target="_blank">
+      <div class="cc-img"><div class="cc-bg g-wine2"></div>
+        <div class="cc-txt"><div class="cc-title">Consultoria<br>de Imagem</div></div>
+        <div class="cc-badge prem">✦ Premium</div>
+      </div>
+      <div class="cc-body">
+        <div class="cc-name">Consultoria de Imagem</div>
+        <div class="cc-cat">Exclusivo · 1 a 1</div>
+        <div class="cc-btn">Agendar →</div>
+      </div>
+    </a>
+
+    <a class="cc" href="https://api.whatsapp.com/send?phone=5511912142810&text=Oi!%20Quero%20saber%20sobre%20Mentoria%20%F0%9F%8C%B8" target="_blank">
+      <div class="cc-img"><div class="cc-bg g-wine3"></div>
+        <div class="cc-txt"><div class="cc-title">Mentoria<br>de Estilo</div></div>
+        <div class="cc-badge new">Novo</div>
+      </div>
+      <div class="cc-body">
+        <div class="cc-name">Mentoria de Estilo</div>
+        <div class="cc-cat">Acompanhamento</div>
+        <div class="cc-btn">Saber mais →</div>
+      </div>
+    </a>
+
+    <a class="cc" href="https://api.whatsapp.com/send?phone=5511912142810&text=Oi!%20Quero%20saber%20sobre%20Coloracao%20Pessoal%20%F0%9F%8C%B8" target="_blank">
+      <div class="cc-img"><div class="cc-bg g-wine4"></div>
+        <div class="cc-txt"><div class="cc-title">Coloração<br>Pessoal</div></div>
+      </div>
+      <div class="cc-body">
+        <div class="cc-name">Coloração Pessoal</div>
+        <div class="cc-cat">Workshop Online</div>
+        <div class="cc-btn">Saber mais →</div>
+      </div>
+    </a>
+
+    <a class="cc" href="https://api.whatsapp.com/send?phone=5511912142810&text=Oi!%20Quero%20saber%20sobre%20Imagem%20Crista%20%F0%9F%8C%B8" target="_blank">
+      <div class="cc-img"><div class="cc-bg g-wine5"></div>
+        <div class="cc-txt"><div class="cc-title">Imagem<br>Cristã</div></div>
+      </div>
+      <div class="cc-body">
+        <div class="cc-name">Imagem Cristã</div>
+        <div class="cc-cat">Módulo Especial</div>
+        <div class="cc-btn">Saber mais →</div>
+      </div>
+    </a>
+
+    <a class="cc" href="https://api.whatsapp.com/send?phone=5511912142810&text=Oi!%20Quero%20saber%20sobre%20Closet%20Edit%20%F0%9F%8C%B8" target="_blank">
+      <div class="cc-img"><div class="cc-bg g-wine6"></div>
+        <div class="cc-txt"><div class="cc-title">Closet<br>Edit</div></div>
+      </div>
+      <div class="cc-body">
+        <div class="cc-name">Closet Edit</div>
+        <div class="cc-cat">Guarda-roupa</div>
+        <div class="cc-btn">Saber mais →</div>
+      </div>
+    </a>
+
+    <a class="cc" href="https://api.whatsapp.com/send?phone=5511912142810&text=Oi!%20Quero%20saber%20sobre%20Personal%20Styling%20%F0%9F%8C%B8" target="_blank">
+      <div class="cc-img"><div class="cc-bg g-wine7"></div>
+        <div class="cc-txt"><div class="cc-title">Personal<br>Styling</div></div>
+      </div>
+      <div class="cc-body">
+        <div class="cc-name">Personal Styling</div>
+        <div class="cc-cat">Eventos · Viagens</div>
+        <div class="cc-btn">Saber mais →</div>
+      </div>
+    </a>
+
+    <a class="cc" href="https://api.whatsapp.com/send?phone=5511912142810&text=Oi!%20Quero%20saber%20sobre%20Ministracao%20%F0%9F%8C%B8" target="_blank">
+      <div class="cc-img"><div class="cc-bg g-wine8"></div>
+        <div class="cc-txt"><div class="cc-title">Ministrações<br>&amp; Palestras</div></div>
+      </div>
+      <div class="cc-body">
+        <div class="cc-name">Ministrações</div>
+        <div class="cc-cat">Igrejas · Eventos</div>
+        <div class="cc-btn">Saber mais →</div>
+      </div>
+    </a>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- 1.4 MINI YOUTUBE                               -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="s">
+  <div class="sh"><div class="sh-dot"></div><span class="sh-txt">Série gratuita de estilo</span></div>
+
+  <a class="yt-banner" href="https://www.youtube.com/watch?v=5R9o-yeEYVw" target="_blank">
+    <div class="yt-tag">▶ Novo hoje</div>
+    <div style="position:relative">
+      <img class="yt-thumb" src="https://img.youtube.com/vi/5R9o-yeEYVw/mqdefault.jpg" alt="">
+      <div class="yt-play-ov">
+        <svg viewBox="0 0 60 60" width="56" height="56">
+          <circle cx="30" cy="30" r="29" fill="rgba(61,24,38,.6)"/>
+          <polygon points="24,18 24,42 44,30" fill="white"/>
+        </svg>
+      </div>
+    </div>
+    <div class="yt-info">
+      <div class="yt-lbl">YouTube · Vídeo mais recente</div>
+      <div class="yt-title">6 coisas que acabam com a sua beleza</div>
+    </div>
+  </a>
+
+  <div class="vids-row">
+    <a class="vid" href="https://www.youtube.com/watch?v=lPnGLN5ZwKU" target="_blank">
+      <div class="vid-th"><img src="https://img.youtube.com/vi/lPnGLN5ZwKU/mqdefault.jpg" alt=""><div class="vid-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
+      <div class="vid-lbl">Os 7 sapatos de toda mulher elegante</div>
+    </a>
+    <a class="vid" href="https://www.youtube.com/watch?v=zgcAGN8w7Z8" target="_blank">
+      <div class="vid-th"><img src="https://img.youtube.com/vi/zgcAGN8w7Z8/mqdefault.jpg" alt=""><div class="vid-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
+      <div class="vid-lbl">3 erros de estilo muito comuns</div>
+    </a>
+    <a class="vid" href="https://www.youtube.com/watch?v=K_NPCOYcJRY" target="_blank">
+      <div class="vid-th"><img src="https://img.youtube.com/vi/K_NPCOYcJRY/mqdefault.jpg" alt=""><div class="vid-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
+      <div class="vid-lbl">Camisa por dentro da calça</div>
+    </a>
+    <a class="vid" href="https://www.youtube.com/watch?v=a4-bfPOFQ6I" target="_blank">
+      <div class="vid-th"><img src="https://img.youtube.com/vi/a4-bfPOFQ6I/mqdefault.jpg" alt=""><div class="vid-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
+      <div class="vid-lbl">Se vestir bem sem gastar muito</div>
+    </a>
+  </div>
+
+  <a class="yt-more" href="https://www.youtube.com/@eusoucamilarocha" target="_blank">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="#D04040"><path d="M23.5 6.19a3.02 3.02 0 00-2.12-2.14C19.54 3.5 12 3.5 12 3.5s-7.54 0-9.38.55A3.02 3.02 0 00.5 6.19 31.66 31.66 0 000 12a31.66 31.66 0 00.5 5.81 3.02 3.02 0 002.12 2.14C4.46 20.5 12 20.5 12 20.5s7.54 0 9.38-.55a3.02 3.02 0 002.12-2.14A31.66 31.66 0 0024 12a31.66 31.66 0 00-.5-5.81zM9.75 15.02V8.98L15.5 12l-5.75 3.02z"/></svg>
+    Ver todos os vídeos no YouTube
+  </a>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- 1.5 AGENDA                                     -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="s">
+  <div class="sh"><div class="sh-dot"></div><span class="sh-txt">Agendar consultoria</span></div>
+  <div class="agenda">
+    <div class="ag-head">
+      <div class="ag-icon">
+        <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5C3.9 3 3 3.9 3 5v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm0 16H5V8h14v11z"/></svg>
+      </div>
+      <div>
+        <div class="ag-title">Consulte a agenda</div>
+        <div class="ag-sub">Consultoria · Eventos · Ministrações</div>
+      </div>
+    </div>
+    <div class="ag-steps">
+      <div class="ags on"><span class="ags-num">📅</span>Dia</div>
+      <div class="ags"><span class="ags-num">⏰</span>Horário</div>
+      <div class="ags"><span class="ags-num">✨</span>Serviço</div>
+      <div class="ags"><span class="ags-num">✔</span>Dados</div>
+    </div>
+    <div class="ag-body">
+      <div class="cal-month">Julho 2026</div>
+      <div class="cal">
+        <div class="cal-dn">D</div><div class="cal-dn">S</div><div class="cal-dn">T</div>
+        <div class="cal-dn">Q</div><div class="cal-dn">Q</div><div class="cal-dn">S</div><div class="cal-dn">S</div>
+        <div class="cal-d"></div><div class="cal-d"></div>
+        <div class="cal-d av" onclick="selD(this)">1</div>
+        <div class="cal-d">2</div><div class="cal-d av" onclick="selD(this)">3</div>
+        <div class="cal-d">4</div><div class="cal-d">5</div>
+        <div class="cal-d">6</div><div class="cal-d av" onclick="selD(this)">7</div>
+        <div class="cal-d">8</div><div class="cal-d">9</div><div class="cal-d">10</div>
+        <div class="cal-d av" onclick="selD(this)">11</div><div class="cal-d">12</div>
+        <div class="cal-d">13</div><div class="cal-d">14</div>
+        <div class="cal-d av" onclick="selD(this)">15</div>
+        <div class="cal-d">16</div><div class="cal-d">17</div><div class="cal-d">18</div><div class="cal-d">19</div>
+        <div class="cal-d">20</div><div class="cal-d av" onclick="selD(this)">21</div>
+        <div class="cal-d">22</div><div class="cal-d">23</div><div class="cal-d">24</div>
+        <div class="cal-d av" onclick="selD(this)">25</div>
+        <div class="cal-d">26</div><div class="cal-d">27</div><div class="cal-d">28</div>
+        <div class="cal-d av" onclick="selD(this)">29</div>
+        <div class="cal-d">30</div><div class="cal-d">31</div>
+      </div>
+      <a class="ag-cta" href="https://api.whatsapp.com/send?phone=5511912142810&text=Oi%20Camila!%20Quero%20agendar%20uma%20consultoria%20%F0%9F%8C%B8" target="_blank">
+        <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Confirmar pelo WhatsApp
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- 1.6 COMUNIDADE                                 -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="s">
+  <div class="sh"><div class="sh-dot"></div><span class="sh-txt">Mulheres que se transformam juntas</span></div>
+  <div class="com">
+    <div class="com-emoji">🌸</div>
+    <h3 class="com-title">Faça parte da<br>nossa comunidade</h3>
+    <p class="com-sub">Uma família de mulheres elegantes, confiantes e com propósito cristão — crescendo juntas todos os dias.</p>
+    <div class="com-feats">
+      <div class="cf">
+        <div class="cf-em">☀️</div>
+        <div>
+          <div class="cf-title">Bom dia mulheres lindas ✨</div>
+          <div class="cf-sub">Mensagem de incentivo toda manhã para começar o dia com estilo e fé</div>
+        </div>
+      </div>
+      <div class="cf">
+        <div class="cf-em">▶️</div>
+        <div>
+          <div class="cf-title">Novo vídeo? Você é a primeira a saber</div>
+          <div class="cf-sub">Aviso automático quando a Camila lança conteúdo novo no YouTube</div>
+        </div>
+      </div>
+      <div class="cf">
+        <div class="cf-em">🎁</div>
+        <div>
+          <div class="cf-title">Conteúdo exclusivo da família</div>
+          <div class="cf-sub">Dicas que não vão para as redes — só para quem é da comunidade</div>
+        </div>
+      </div>
+      <div class="cf">
+        <div class="cf-em">💬</div>
+        <div>
+          <div class="cf-title">Apoio de quem está na mesma jornada</div>
+          <div class="cf-sub">Mulheres reais construindo um estilo com propósito</div>
+        </div>
+      </div>
+    </div>
+    <a class="com-cta" href="https://api.whatsapp.com/send?phone=5511912142810&text=Oi!%20Quero%20entrar%20na%20comunidade%20da%20Camila%20Rocha%20%F0%9F%8C%B8" target="_blank">
+      Entrar na comunidade →
+    </a>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- 1.7 DEPOIMENTOS                                -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="s">
+  <div class="sh"><div class="sh-dot"></div><span class="sh-txt">O que elas dizem</span></div>
+  <div class="testi-row">
+    <div class="tc">
+      <div class="tc-stars">★★★★★</div>
+      <div class="tc-text">"A Camila mudou completamente minha relação com o espelho. Hoje me visto com confiança e propósito todos os dias."</div>
+      <div class="tc-foot"><div class="tc-ava">AM</div><div><div class="tc-name">Ana Maria</div><div class="tc-city">São Paulo, SP</div></div></div>
+    </div>
+    <div class="tc">
+      <div class="tc-stars">★★★★★</div>
+      <div class="tc-text">"Nunca imaginei que aprender sobre moda me aproximaria tanto da minha feminilidade cristã. Que presente!"</div>
+      <div class="tc-foot"><div class="tc-ava">JP</div><div><div class="tc-name">Juliana Pereira</div><div class="tc-city">Belo Horizonte, MG</div></div></div>
+    </div>
+    <div class="tc">
+      <div class="tc-stars">★★★★★</div>
+      <div class="tc-text">"O Geração do Estilo foi o melhor investimento que já fiz em mim mesma. Recomendo para todas as mulheres!"</div>
+      <div class="tc-foot"><div class="tc-ava">RS</div><div><div class="tc-name">Renata Silva</div><div class="tc-city">Curitiba, PR</div></div></div>
+    </div>
+    <div class="tc">
+      <div class="tc-stars">★★★★★</div>
+      <div class="tc-text">"Em 3 meses minha forma de me vestir, minha postura e autoestima mudaram. Me sinto outra mulher!"</div>
+      <div class="tc-foot"><div class="tc-ava">MC</div><div><div class="tc-name">Mariana Costa</div><div class="tc-city">Lisboa, Portugal</div></div></div>
+    </div>
+    <div class="tc">
+      <div class="tc-stars">★★★★★</div>
+      <div class="tc-text">"Achei que consultoria era luxo — mas é o melhor retorno que existe! A Camila enxerga em mim o que eu mesma não via."</div>
+      <div class="tc-foot"><div class="tc-ava">CB</div><div><div class="tc-name">Carolina Braga</div><div class="tc-city">Campinas, SP</div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ -->
+<!-- 1.8 FALE COM A EQUIPE                          -->
+<!-- ══════════════════════════════════════════════ -->
+<div class="s" style="padding-bottom:0">
+  <div class="sh"><div class="sh-dot"></div><span class="sh-txt">Fale com a equipe</span></div>
+  <div class="wa-list">
+    <a class="wa" href="https://api.whatsapp.com/send?phone=5511912142810&text=Oi!%20Quero%20saber%20sobre%20consultoria%20ou%20eventos%20com%20a%20Camila%20%F0%9F%8C%B8" target="_blank">
+      <div class="wa-ic"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
+      <div class="wa-info"><div class="wa-t">Consultoria &amp; Ministrações</div><div class="wa-s">Fale diretamente com a equipe</div></div>
+      <div class="wa-arr">›</div>
+    </a>
+    <a class="wa" href="https://api.whatsapp.com/send?phone=5511912142810&text=Oi!%20Tenho%20uma%20d%C3%BAvida%20sobre%20os%20cursos%20da%20Camila%20%F0%9F%8C%B8" target="_blank">
+      <div class="wa-ic"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
+      <div class="wa-info"><div class="wa-t">Suporte &amp; Dúvidas</div><div class="wa-s">Cursos, acessos ou materiais</div></div>
+      <div class="wa-arr">›</div>
+    </a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="foot">
+  <div class="foot-logo">Powered by <b>CA.RO Connect</b></div>
+  <div class="foot-copy">© 2026 Camila Rocha · Todos os direitos reservados</div>
+</div>
+
+<script>
+/* ── QUIZ ── */
+function qStart(){
+  document.getElementById('q-intro').style.display='none';
+  document.getElementById('q-body').style.display='block';
+}
+function qNext(n,a){
+  var prev=document.querySelector('.qstep.active');
+  if(prev){prev.classList.remove('active');prev.style.display='none'}
+  var next=document.getElementById('qs'+n);
+  if(next){next.classList.add('active');next.style.display='block'}
+  for(var i=1;i<=n;i++){var p=document.getElementById('qp'+i);if(p)p.classList.add('on')}
+}
+function qResult(t){
+  document.getElementById('q-body').style.display='none';
+  document.querySelectorAll('.qresult').forEach(function(r){r.style.display='none';r.classList.remove('show')});
+  var el=document.getElementById('qr-'+t);
+  if(el){el.style.display='block';setTimeout(function(){el.classList.add('show')},10)}
+}
+function qReset(){
+  document.querySelectorAll('.qresult').forEach(function(r){r.style.display='none';r.classList.remove('show')});
+  document.querySelectorAll('.qstep').forEach(function(s,i){s.style.display=i===0?'block':'none';if(i===0)s.classList.add('active');else s.classList.remove('active')});
+  document.querySelectorAll('.qpd').forEach(function(p,i){if(i===0)p.classList.add('on');else p.classList.remove('on')});
+  document.getElementById('q-body').style.display='none';
+  document.getElementById('q-intro').style.display='block';
+}
+/* ── CALENDAR ── */
+function selD(el){
+  document.querySelectorAll('.cal-d').forEach(function(d){d.classList.remove('sel')});
+  el.classList.add('sel');
+}
+</script>
+</body>
+</html>
