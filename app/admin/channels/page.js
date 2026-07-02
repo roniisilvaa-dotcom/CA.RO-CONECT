@@ -1,298 +1,303 @@
 'use client'
 import { useState } from 'react'
 
-const GREEN = '#25D366'
-const DARK_GREEN = '#128C7E'
-const LIGHT_GREEN = '#e9f5ee'
-
-function Toggle({ value, onChange, disabled }) {
+function Toggle({ on, onChange }) {
   return (
-    <div
-      onClick={() => !disabled && onChange(!value)}
+    <button
+      onClick={() => onChange && onChange(!on)}
       style={{
-        width: 50, height: 28, borderRadius: 14,
-        background: value ? GREEN : '#d1d7db',
-        position: 'relative', cursor: disabled ? 'not-allowed' : 'pointer',
-        transition: 'background 0.2s', flexShrink: 0,
+        width: 48, height: 26,
+        borderRadius: 13,
+        background: on ? '#25D366' : '#e9edef',
+        border: 'none',
+        cursor: onChange ? 'pointer' : 'not-allowed',
+        position: 'relative',
+        transition: 'background 0.25s',
+        flexShrink: 0,
       }}
     >
-      <div style={{
-        width: 22, height: 22, borderRadius: '50%',
+      <span style={{
+        position: 'absolute',
+        top: 3, left: on ? 25 : 3,
+        width: 20, height: 20,
+        borderRadius: '50%',
         background: '#fff',
-        position: 'absolute', top: 3,
-        left: value ? 25 : 3,
-        transition: 'left 0.2s',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
+        transition: 'left 0.25s',
       }}/>
-    </div>
+    </button>
   )
 }
 
-function ChannelCard({ icon, name, platform, color, aiEnabled, onAiToggle, connected, status, stats, children }) {
+function ConfigRow({ label, desc, children, last }) {
   return (
     <div style={{
-      background: '#fff', borderRadius: 12,
-      boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-      overflow: 'hidden', marginBottom: 16,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 16,
+      padding: '14px 20px',
+      borderBottom: last ? 'none' : '1px solid #f0f2f5',
     }}>
-      {/* Header */}
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 14,
-        padding: '18px 20px',
-        borderBottom: '1px solid #f0f2f5',
-      }}>
-        <div style={{
-          width: 46, height: 46, borderRadius: 12,
-          background: color + '15',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 22, flexShrink: 0,
-        }}>{icon}</div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 16, fontWeight: 600, color: '#111b21' }}>{name}</div>
-          <div style={{ fontSize: 12.5, color: '#667781', marginTop: 2 }}>{platform}</div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{
-            width: 8, height: 8, borderRadius: '50%',
-            background: connected ? GREEN : '#d1d7db',
-          }}/>
-          <span style={{ fontSize: 12, color: connected ? GREEN : '#aab0b7', fontWeight: 500 }}>
-            {connected ? 'Conectado' : 'Desconectado'}
-          </span>
-        </div>
+      <div>
+        <div style={{ fontSize: 13.5, fontWeight: 500, color: '#111b21' }}>{label}</div>
+        {desc && <div style={{ fontSize: 12.5, color: '#667781', marginTop: 2 }}>{desc}</div>}
       </div>
-
-      {/* AI Toggle */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '16px 20px', borderBottom: '1px solid #f0f2f5',
-        background: aiEnabled ? '#f7fdf9' : '#fff',
-      }}>
-        <div>
-          <div style={{ fontSize: 14, fontWeight: 600, color: '#111b21', display: 'flex', alignItems: 'center', gap: 8 }}>
-            🤖 IA Ativa neste canal
-            {aiEnabled && <span style={{
-              fontSize: 10, padding: '2px 8px', borderRadius: 10,
-              background: LIGHT_GREEN, color: DARK_GREEN, fontWeight: 500,
-            }}>Respondendo automaticamente</span>}
-          </div>
-          <div style={{ fontSize: 12.5, color: '#667781', marginTop: 3 }}>
-            {aiEnabled
-              ? 'A IA está respondendo as mensagens neste canal'
-              : 'Ativar para a IA responder automaticamente'}
-          </div>
-        </div>
-        <Toggle value={aiEnabled} onChange={onAiToggle} disabled={!connected} />
-      </div>
-
-      {/* Stats */}
-      {stats && (
-        <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
-          padding: '14px 20px', gap: 12, borderBottom: '1px solid #f0f2f5',
-        }}>
-          {stats.map(s => (
-            <div key={s.label} style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 22, fontWeight: 700, color: color }}>{s.value}</div>
-              <div style={{ fontSize: 11.5, color: '#667781', marginTop: 2 }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Extra content */}
-      {children && (
-        <div style={{ padding: '16px 20px' }}>{children}</div>
-      )}
+      <div style={{ flexShrink: 0 }}>{children}</div>
     </div>
   )
 }
 
 export default function ChannelsPage() {
-  const [waAI, setWaAI] = useState(true)
-  const [igAI, setIgAI] = useState(false)
-  const [waGreeting, setWaGreeting] = useState('Olá! Sou a assistente virtual da Camila Rocha 💚 Como posso te ajudar hoje?')
-  const [igGreeting, setIgGreeting] = useState('Oi! Obrigada por me chamar no Instagram 🌸 Sou a IA da Camila. Como posso ajudar?')
-  const [saved, setSaved] = useState(null)
+  const [waAI,     setWaAI]     = useState(true)
+  const [waGreet,  setWaGreet]  = useState(true)
+  const [waAuto,   setWaAuto]   = useState(true)
+  const [waLead,   setWaLead]   = useState(true)
+  const [saved,    setSaved]    = useState(false)
+  const [greeting, setGreeting] = useState(
+    'Olá! 👋 Aqui é a Camila Rocha, consultora de imagem. Como posso te ajudar hoje?'
+  )
 
-  function save(channel) {
-    setSaved(channel)
-    setTimeout(() => setSaved(null), 2500)
+  function save() {
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2500)
   }
 
-  const waStats = [
-    { label: 'Mensagens hoje', value: '—' },
-    { label: 'Respondidas pela IA', value: '—' },
-    { label: 'Taxa de resposta', value: '—' },
-  ]
-
-  const igStats = [
-    { label: 'DMs hoje', value: '—' },
-    { label: 'Respondidas pela IA', value: '—' },
-    { label: 'Novos seguidores', value: '—' },
-  ]
-
   return (
-    <div style={{ padding: '24px 28px' }}>
+    <div style={{ padding: '24px 28px', maxWidth: 860 }}>
 
       {/* Header */}
-      <div style={{
-        background: '#fff', borderRadius: 12, padding: '18px 22px',
-        marginBottom: 20, boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 600, color: '#111b21' }}>📡 Canais</h1>
-          <p style={{ fontSize: 13, color: '#667781', marginTop: 2 }}>
-            Controle a IA do WhatsApp e Instagram aqui
-          </p>
-        </div>
-        <div style={{
-          padding: '8px 16px', borderRadius: 20,
-          background: '#f0f2f5', fontSize: 12.5, color: '#667781',
-        }}>
-          2 canais configurados
-        </div>
+      <div style={{ marginBottom: 28 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111b21', letterSpacing: '-0.3px' }}>
+          Canais
+        </h1>
+        <p style={{ fontSize: 13.5, color: '#667781', marginTop: 4 }}>
+          Configure seus canais de atendimento e o comportamento da IA.
+        </p>
       </div>
 
-      {/* WhatsApp Card */}
-      <ChannelCard
-        icon="💬"
-        name="WhatsApp"
-        platform="WhatsApp Business API · CA.RO Studio"
-        color={GREEN}
-        aiEnabled={waAI}
-        onAiToggle={setWaAI}
-        connected={true}
-        stats={waStats}
-      >
-        <div>
-          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#667781', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 }}>
-            Mensagem de boas-vindas
-          </label>
-          <textarea
-            value={waGreeting}
-            onChange={e => setWaGreeting(e.target.value)}
-            rows={3}
-            style={{
-              width: '100%', border: '1px solid #e9edef', borderRadius: 8,
-              padding: '10px 14px', fontSize: 13.5, color: '#111b21',
-              resize: 'none', outline: 'none', lineHeight: 1.5,
-              fontFamily: "'Inter', sans-serif",
-            }}
-          />
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, alignItems: 'center' }}>
-            <span style={{ fontSize: 12, color: '#aab0b7' }}>Enviada quando alguém manda a primeira mensagem</span>
-            <button onClick={() => save('wa')} style={{
-              padding: '7px 20px', borderRadius: 20,
-              background: saved === 'wa' ? LIGHT_GREEN : GREEN,
-              color: saved === 'wa' ? DARK_GREEN : '#fff',
-              border: 'none', fontSize: 13, fontWeight: 500, cursor: 'pointer',
-              transition: 'all 0.2s',
-            }}>
-              {saved === 'wa' ? '✓ Salvo!' : 'Salvar'}
-            </button>
-          </div>
-        </div>
+      {/* ═══ WHATSAPP ═══ */}
+      <div style={{
+        background: '#fff',
+        borderRadius: 12,
+        border: '1px solid #e9edef',
+        overflow: 'hidden',
+        marginBottom: 16,
+      }}>
 
-        {/* Quick settings */}
-        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #f0f2f5' }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: '#667781', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 12 }}>
-            Comportamento da IA
-          </div>
-          {[
-            { label: 'Responder fora do horário comercial', val: true },
-            { label: 'Qualificar leads automaticamente', val: true },
-            { label: 'Alertar Camila para leads quentes', val: true },
-            { label: 'Enviar link de agendamento', val: false },
-          ].map((opt, i) => (
-            <div key={i} style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '9px 0', borderBottom: i < 3 ? '1px solid #f0f2f5' : 'none',
-            }}>
-              <span style={{ fontSize: 13.5, color: '#111b21' }}>{opt.label}</span>
-              <Toggle value={opt.val} onChange={() => {}} />
-            </div>
-          ))}
-        </div>
-      </ChannelCard>
-
-      {/* Instagram Card */}
-      <ChannelCard
-        icon="📸"
-        name="Instagram Direct"
-        platform="Instagram Business · @camilarocha"
-        color="#E1306C"
-        aiEnabled={igAI}
-        onAiToggle={setIgAI}
-        connected={false}
-        stats={igStats}
-      >
-        {/* Connection banner */}
+        {/* Header do canal */}
         <div style={{
-          background: '#fff8f0', border: '1px solid #fde68a',
-          borderRadius: 10, padding: '14px 16px', marginBottom: 16,
-          display: 'flex', gap: 12, alignItems: 'flex-start',
+          padding: '16px 20px',
+          borderBottom: '1px solid #e9edef',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
         }}>
-          <span style={{ fontSize: 18, flexShrink: 0 }}>⚠️</span>
-          <div>
-            <div style={{ fontSize: 13.5, fontWeight: 600, color: '#92400e', marginBottom: 3 }}>
-              Instagram aguardando verificação Meta
-            </div>
-            <div style={{ fontSize: 12.5, color: '#b45309', lineHeight: 1.5 }}>
-              A verificação da conta business (CR IMAGE LTDA) está em andamento no Meta. Assim que aprovada, a IA do Instagram será ativada automaticamente aqui.
-            </div>
+          <div style={{
+            width: 44, height: 44,
+            borderRadius: 12,
+            background: '#e9f5ee',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#25D366">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347"/>
+            </svg>
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#111b21' }}>WhatsApp Business</div>
+            <div style={{ fontSize: 12.5, color: '#25D366', fontWeight: 500, marginTop: 1 }}>✓ Conectado</div>
+          </div>
+          {/* IA toggle principal */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            background: waAI ? '#e9f5ee' : '#f0f2f5',
+            borderRadius: 20,
+            padding: '6px 14px',
+            transition: 'background 0.2s',
+          }}>
+            <span style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: waAI ? '#128C7E' : '#aab0b7',
+            }}>
+              IA {waAI ? 'ativa' : 'pausada'}
+            </span>
+            <Toggle on={waAI} onChange={setWaAI} />
           </div>
         </div>
 
-        <div style={{ marginBottom: 14 }}>
-          <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#667781', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 8 }}>
-            Mensagem de boas-vindas (Instagram)
-          </label>
+        {/* Saudação */}
+        <div style={{ padding: '16px 20px', borderBottom: '1px solid #f0f2f5' }}>
+          <div style={{ fontSize: 13.5, fontWeight: 500, color: '#111b21', marginBottom: 8 }}>
+            Mensagem de boas-vindas
+          </div>
           <textarea
-            value={igGreeting}
-            onChange={e => setIgGreeting(e.target.value)}
+            value={greeting}
+            onChange={e => setGreeting(e.target.value)}
             rows={3}
             style={{
-              width: '100%', border: '1px solid #e9edef', borderRadius: 8,
-              padding: '10px 14px', fontSize: 13.5, color: '#111b21',
-              resize: 'none', outline: 'none', lineHeight: 1.5,
-              fontFamily: "'Inter', sans-serif",
+              width: '100%',
+              background: '#f0f2f5',
+              border: '1.5px solid #e9edef',
+              borderRadius: 10,
+              padding: '10px 14px',
+              fontSize: 13.5,
+              color: '#111b21',
+              fontFamily: 'Inter, -apple-system, sans-serif',
+              resize: 'none',
+              outline: 'none',
+              lineHeight: 1.6,
+              transition: 'border-color 0.15s',
             }}
+            onFocus={e => e.target.style.borderColor = '#25D366'}
+            onBlur={e => e.target.style.borderColor = '#e9edef'}
           />
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, alignItems: 'center' }}>
-            <span style={{ fontSize: 12, color: '#aab0b7' }}>Preparada para quando a integração for aprovada</span>
-            <button onClick={() => save('ig')} style={{
-              padding: '7px 20px', borderRadius: 20,
-              background: saved === 'ig' ? '#fdf2f8' : '#E1306C',
-              color: saved === 'ig' ? '#be185d' : '#fff',
-              border: 'none', fontSize: 13, fontWeight: 500, cursor: 'pointer',
-            }}>
-              {saved === 'ig' ? '✓ Salvo!' : 'Salvar'}
-            </button>
+          <div style={{ fontSize: 12, color: '#aab0b7', marginTop: 5 }}>
+            Enviada automaticamente ao primeiro contato
           </div>
         </div>
 
-        <div style={{ paddingTop: 14, borderTop: '1px solid #f0f2f5' }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: '#667781', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 12 }}>
-            O que a IA vai fazer no Instagram
-          </div>
-          {[
-            { label: 'Responder DMs automáticos', val: true },
-            { label: 'Responder comentários com convite para DM', val: true },
-            { label: 'Identificar interesse em consultoria', val: true },
-            { label: 'Enviar link da bio ao responder', val: false },
-          ].map((opt, i) => (
-            <div key={i} style={{
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              padding: '9px 0', borderBottom: i < 3 ? '1px solid #f0f2f5' : 'none',
-            }}>
-              <span style={{ fontSize: 13.5, color: '#111b21' }}>{opt.label}</span>
-              <Toggle value={opt.val} onChange={() => {}} disabled={!false} />
-            </div>
-          ))}
+        {/* Configurações de comportamento */}
+        <ConfigRow label="Resposta automática" desc="IA responde sem intervenção manual">
+          <Toggle on={waAuto} onChange={setWaAuto} />
+        </ConfigRow>
+        <ConfigRow label="Saudação automática" desc="Enviar boas-vindas ao primeiro contato">
+          <Toggle on={waGreet} onChange={setWaGreet} />
+        </ConfigRow>
+        <ConfigRow label="Captura de leads" desc="Salvar novos contatos automaticamente" last>
+          <Toggle on={waLead} onChange={setWaLead} />
+        </ConfigRow>
+
+        {/* Salvar */}
+        <div style={{
+          padding: '14px 20px',
+          borderTop: '1px solid #f0f2f5',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+        }}>
+          <button
+            onClick={save}
+            style={{
+              padding: '10px 24px',
+              background: '#25D366',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 20,
+              fontSize: 14,
+              fontWeight: 600,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              transition: 'opacity 0.15s',
+            }}
+          >
+            Salvar configurações
+          </button>
+          {saved && (
+            <span style={{ fontSize: 13, color: '#25D366', fontWeight: 500 }}>
+              ✓ Salvo!
+            </span>
+          )}
         </div>
-      </ChannelCard>
+
+      </div>
+
+      {/* ═══ INSTAGRAM ═══ */}
+      <div style={{
+        background: '#fff',
+        borderRadius: 12,
+        border: '1px solid #e9edef',
+        overflow: 'hidden',
+      }}>
+
+        {/* Header do canal */}
+        <div style={{
+          padding: '16px 20px',
+          borderBottom: '1px solid #e9edef',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+        }}>
+          <div style={{
+            width: 44, height: 44,
+            borderRadius: 12,
+            background: 'linear-gradient(135deg, #f5f0f5 0%, #fce4f0 100%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c13584" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+              <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+            </svg>
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: '#111b21' }}>Instagram</div>
+            <div style={{ fontSize: 12.5, color: '#aab0b7', marginTop: 1 }}>
+              Verificação Meta em andamento
+            </div>
+          </div>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            background: '#f0f2f5',
+            borderRadius: 20,
+            padding: '6px 14px',
+            opacity: 0.55,
+          }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#aab0b7' }}>IA pausada</span>
+            <Toggle on={false} onChange={null} />
+          </div>
+        </div>
+
+        {/* Aviso */}
+        <div style={{
+          margin: '16px 20px',
+          padding: '14px 16px',
+          background: '#fef9ec',
+          borderRadius: 10,
+          border: '1px solid #fde68a',
+          display: 'flex',
+          gap: 12,
+          alignItems: 'flex-start',
+        }}>
+          <span style={{ fontSize: 20, flexShrink: 0, lineHeight: 1.4 }}>⏳</span>
+          <div>
+            <div style={{ fontSize: 13.5, fontWeight: 600, color: '#92400e', marginBottom: 4 }}>
+              Verificação Meta em andamento
+            </div>
+            <div style={{ fontSize: 13, color: '#92400e', lineHeight: 1.55 }}>
+              A <strong>CR IMAGE LTDA</strong> está sendo verificada pela Meta. Prazo: 2–10 dias úteis.
+              Quando aprovado, a IA do Instagram ativa automaticamente com a saudação configurada abaixo.
+            </div>
+          </div>
+        </div>
+
+        {/* Saudação pré-configurada */}
+        <div style={{ padding: '0 20px 20px' }}>
+          <div style={{ fontSize: 13, fontWeight: 500, color: '#aab0b7', marginBottom: 8 }}>
+            Saudação pré-configurada (ativa após aprovação)
+          </div>
+          <div style={{
+            background: '#f0f2f5',
+            borderRadius: 10,
+            padding: '12px 14px',
+            fontSize: 13.5,
+            color: '#54656f',
+            lineHeight: 1.6,
+            border: '1px solid #e9edef',
+          }}>
+            Oi! 🌟 Que bom te ver por aqui! Sou a assistente da Camila Rocha, consultora de imagem.
+            Quer saber mais sobre consultoria de estilo ou shopping pessoal? Me conta! 💫
+          </div>
+        </div>
+
+      </div>
+
     </div>
   )
 }
