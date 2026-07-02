@@ -44,14 +44,10 @@ export async function POST(request) {
     const phoneNumberId = value.metadata?.phone_number_id
 
     // ── COEXISTENCE: Mensagem enviada pelo celular do cliente ─────
-    // Quando Coexistence está ativo, mensagens enviadas pelo app WhatsApp Business
-    // chegam com field = 'smb_message_echoes'. Salvamos como human_agent.
     if (field === 'smb_message_echoes') {
       return handlePhoneEcho(message, phoneNumberId, value)
     }
 
-    // Também pode chegar com from = número do negócio (echo alternativo)
-    // Detectamos pelo campo 'to' (mensagem de saída tem 'to' com o destinatário)
     if (message.to) {
       return handlePhoneEcho(message, phoneNumberId, value)
     }
@@ -59,30 +55,19 @@ export async function POST(request) {
     const fromPhone = message.from
     const messageId = message.id
 
-    // Ignorar status/reactions
     if (message.type === 'reaction' || message.status) {
       return NextResponse.json({ status: 'ignored' })
     }
 
-    // Extrair conteúdo
     const content = extractContent(message)
 
-    // Buscar tenant pelo phoneNumberId
     const tenant_id = await findTenantId(phoneNumberId)
     if (!tenant_id) {
       console.error('Nenhum tenant para phoneNumberId:', phoneNumberId)
       return NextResponse.json({ status: 'tenant_not_found' })
     }
 
-    // Buscar agent config
-    const [agentConfig] = await sql`
-      SELECT * FROM agent_configs WHERE tenant_id = ${tenant_id} LIMIT 1
-    `
-
-    // Buscar ou criar lead
     const lead = await findOrCreateLead(tenant_id, fromPhone)
-
-    // Buscar ou criar conversa (evita duplicatas com status != 'closed')
     const { convId, aiEnabled } = await findOrCreateConversation(tenant_id, lead.id, 'whatsapp')
 
     // Idempotência
@@ -93,33 +78,21 @@ export async function POST(request) {
       return NextResponse.json({ status: 'duplicate' })
     }
 
-    // Salvar mensagem do cliente
     await sql`
       INSERT INTO messages (tenant_id, conversation_id, role, content, whatsapp_message_id)
       VALUES (${tenant_id}, ${convId}, 'user', ${content}, ${messageId})
     `
     await sql`UPDATE conversations SET updated_at = NOW() WHERE id = ${convId}`
 
-    // Resposta da IA (se habilitada e texto)
+    // IA responde (WhatsApp)
     if (aiEnabled && message.type === 'text' && content.trim()) {
-      try {
-        const baseUrl = process.env.VERCEL_URL
-          ? `https://${process.env.VERCEL_URL}`
-          : 'http://localhost:3000'
-
-        await fetch(`${baseUrl}/api/ai-response`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            conversationId: convId,
-            tenantId: tenant_id,
-            message: content,
-            phone: fromPhone,
-          }),
-        })
-      } catch (aiErr) {
-        console.error('Erro ao acionar IA:', aiErr)
-      }
+      triggerAI({
+        conversationId: convId,
+        tenantId: tenant_id,
+        message: content,
+        phone: fromPhone,
+        channel: 'whatsapp',
+      })
     }
 
     return NextResponse.json({ status: 'ok', conversationId: convId })
@@ -132,7 +105,6 @@ export async function POST(request) {
 // ── COEXISTENCE: Mensagem enviada pelo celular do atendente ───
 async function handlePhoneEcho(message, phoneNumberId, value) {
   try {
-    // Em echo: 'from' é o número do negócio, 'to' é o cliente
     const customerPhone = message.to || value.contacts?.[0]?.wa_id
     const messageId = message.id
 
@@ -142,17 +114,14 @@ async function handlePhoneEcho(message, phoneNumberId, value) {
     if (!tenant_id) return NextResponse.json({ status: 'tenant_not_found' })
 
     const content = extractContent(message)
-
-    // Buscar ou criar lead do cliente
     const lead = await findOrCreateLead(tenant_id, customerPhone)
 
-    // Buscar conversa ativa
     const convs = await sql`
       SELECT id, status FROM conversations
       WHERE tenant_id = ${tenant_id}
-        AND lead_id = ${lead.id}
-        AND channel = 'whatsapp'
-        AND status != 'closed'
+      AND lead_id = ${lead.id}
+      AND channel = 'whatsapp'
+      AND status != 'closed'
       ORDER BY created_at DESC LIMIT 1
     `
 
@@ -168,19 +137,16 @@ async function handlePhoneEcho(message, phoneNumberId, value) {
       convId = newConv.id
     }
 
-    // Idempotência
     const existing = await sql`
       SELECT id FROM messages WHERE whatsapp_message_id = ${messageId} LIMIT 1
     `
     if (existing.length) return NextResponse.json({ status: 'duplicate' })
 
-    // Salvar como mensagem do atendente humano
     await sql`
       INSERT INTO messages (tenant_id, conversation_id, role, content, whatsapp_message_id)
       VALUES (${tenant_id}, ${convId}, 'human_agent', ${content}, ${messageId})
     `
 
-    // Marcar conversa como waiting_human (atendente tomou o controle)
     await sql`
       UPDATE conversations
       SET status = 'waiting_human', updated_at = NOW()
@@ -202,11 +168,15 @@ async function handleInstagram(body) {
     const messaging = entry?.messaging?.[0]
     if (!messaging?.message) return NextResponse.json({ status: 'no_ig_message' })
 
+    // Ignorar echo (mensagens enviadas pelo próprio bot)
+    if (messaging.message.is_echo) return NextResponse.json({ status: 'echo_ignored' })
+
     const senderId = messaging.sender?.id
     const messageId = messaging.message?.mid
     const content = messaging.message?.text || '[Mensagem do Instagram]'
     if (!senderId) return NextResponse.json({ status: 'no_sender' })
 
+    // Buscar tenant com canal Instagram
     const channels = await sql`
       SELECT c.tenant_id FROM channels c
       WHERE c.type = 'instagram' LIMIT 1
@@ -217,7 +187,14 @@ async function handleInstagram(body) {
     const igPhone = `ig_${senderId}`
 
     const lead = await findOrCreateLead(tenant_id, igPhone)
-    const { convId } = await findOrCreateConversation(tenant_id, lead.id, 'instagram')
+    const { convId, aiEnabled } = await findOrCreateConversation(tenant_id, lead.id, 'instagram')
+
+    // Salvar psid na conversa para responder depois
+    await sql`
+      UPDATE conversations
+      SET channel_conversation_id = ${senderId}
+      WHERE id = ${convId}
+    `
 
     const existing = await sql`
       SELECT id FROM messages WHERE whatsapp_message_id = ${messageId} LIMIT 1
@@ -230,11 +207,35 @@ async function handleInstagram(body) {
     `
     await sql`UPDATE conversations SET updated_at = NOW() WHERE id = ${convId}`
 
+    // IA responde (Instagram) ← NOVO: antes não existia esta chamada!
+    if (aiEnabled && content !== '[Mensagem do Instagram]') {
+      triggerAI({
+        conversationId: convId,
+        tenantId: tenant_id,
+        message: content,
+        channel: 'instagram',
+        psid: senderId,
+      })
+    }
+
     return NextResponse.json({ status: 'ok', conversationId: convId })
   } catch (err) {
     console.error('Instagram webhook error:', err)
     return NextResponse.json({ error: err.message }, { status: 500 })
   }
+}
+
+// ── Dispara IA em background (fire-and-forget) ────────────────
+function triggerAI(payload) {
+  const baseUrl = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : 'http://localhost:3000'
+
+  fetch(`${baseUrl}/api/ai-response`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }).catch(err => console.error('Erro ao acionar IA:', err))
 }
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -254,7 +255,7 @@ async function findTenantId(phoneNumberId) {
   let rows = await sql`
     SELECT c.tenant_id FROM channels c
     WHERE c.identifier = ${phoneNumberId}
-      AND c.type IN ('whatsapp', 'whatsapp_meta')
+    AND c.type IN ('whatsapp', 'whatsapp_meta')
     LIMIT 1
   `
   if (!rows.length) {
@@ -284,9 +285,9 @@ async function findOrCreateConversation(tenant_id, leadId, channel) {
   const convs = await sql`
     SELECT id, ai_enabled, status FROM conversations
     WHERE tenant_id = ${tenant_id}
-      AND lead_id = ${leadId}
-      AND channel = ${channel}
-      AND status != 'closed'
+    AND lead_id = ${leadId}
+    AND channel = ${channel}
+    AND status != 'closed'
     ORDER BY created_at DESC LIMIT 1
   `
 
