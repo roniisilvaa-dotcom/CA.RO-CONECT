@@ -160,6 +160,15 @@ export async function GET(request) {
       VALUES (${tenantId}, 'whatsapp_meta', ${phoneNumberId}, 'connected')
     `
     results.channel = `whatsapp_meta:${phoneNumberId}`
+    
+    // 5. Canal Instagram
+    await sql`
+      INSERT INTO channels (tenant_id, type, identifier, status)
+      VALUES (${tenantId}, 'instagram', 'eusoucamilarocha', 'connected')
+      ON CONFLICT DO NOTHING
+    `
+    results.channelInstagram = 'instagram:eusoucamilarocha'
+
 
     // 5. Verificar estado final
     const channels = await sql`SELECT type, identifier, status FROM channels WHERE tenant_id = ${tenantId}`
