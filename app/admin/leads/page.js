@@ -35,11 +35,17 @@ function timeAgo(date) {
   return `${Math.floor(h / 24)}d atrás`
 }
 
-const stageConfig = {
-  new: { label: 'Novo', color: '#6366f1', bg: '#6366f120' },
-  warm: { label: 'Morno', color: '#f59e0b', bg: '#f59e0b20' },
-  hot: { label: '🔥 Quente', color: '#ef4444', bg: '#ef444420' },
-  converted: { label: '✓ Convertido', color: '#10b981', bg: '#10b98120' },
+const STAGE = {
+  new:       { label: 'Novo',           color: '#3949ab', bg: '#e8eaf6' },
+  warm:      { label: 'Morno',          color: '#f59e0b', bg: '#fff8e1' },
+  hot:       { label: '🔥 Quente',      color: '#ef4444', bg: '#ffebee' },
+  converted: { label: '✓ Convertido',   color: '#16a34a', bg: '#e8f5e9' },
+}
+
+const AVATAR_COLORS = ['#128C7E','#25D366','#0ea5e9','#8b5cf6','#ec4899','#f59e0b']
+function avatarColor(phone) {
+  if (!phone) return AVATAR_COLORS[0]
+  return AVATAR_COLORS[parseInt(phone.slice(-1)) % AVATAR_COLORS.length]
 }
 
 export default async function LeadsPage({ searchParams }) {
@@ -51,47 +57,59 @@ export default async function LeadsPage({ searchParams }) {
     return acc
   }, {})
 
+  const FILTERS = [
+    { href: '/admin/leads', label: 'Todos', key: 'all', count: leads.length, color: '#128C7E', bg: '#e9f5ee' },
+    { href: '/admin/leads?stage=hot', label: '🔥 Quentes', key: 'hot', count: stageCounts.hot || 0, ...STAGE.hot },
+    { href: '/admin/leads?stage=warm', label: 'Mornos', key: 'warm', count: stageCounts.warm || 0, ...STAGE.warm },
+    { href: '/admin/leads?stage=new', label: 'Novos', key: 'new', count: stageCounts.new || 0, ...STAGE.new },
+    { href: '/admin/leads?stage=converted', label: 'Convertidos', key: 'converted', count: stageCounts.converted || 0, ...STAGE.converted },
+  ]
+
   return (
-    <div style={{ padding: 32 }}>
+    <div style={{ padding: '24px 28px' }}>
       {/* Header */}
       <div style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#fff', margin: 0 }}>Leads</h1>
-          <p style={{ color: '#6b6b80', fontSize: 13, marginTop: 4 }}>{leads.length} contato{leads.length !== 1 ? 's' : ''} captados</p>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111b21', margin: 0, letterSpacing: '-0.3px' }}>Contatos</h1>
+          <p style={{ color: '#4b5563', fontSize: 13.5, marginTop: 4 }}>{leads.length} lead{leads.length !== 1 ? 's' : ''} captados</p>
         </div>
       </div>
 
-      {/* Stage filters */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
-        {[
-          { href: '/admin/leads', label: 'Todos', key: 'all', count: leads.length },
-          { href: '/admin/leads?stage=hot', label: '🔥 Quentes', key: 'hot', count: stageCounts.hot || 0 },
-          { href: '/admin/leads?stage=warm', label: 'Mornos', key: 'warm', count: stageCounts.warm || 0 },
-          { href: '/admin/leads?stage=new', label: 'Novos', key: 'new', count: stageCounts.new || 0 },
-          { href: '/admin/leads?stage=converted', label: 'Convertidos', key: 'converted', count: stageCounts.converted || 0 },
-        ].map(f => {
-          const active = stage === f.key || (f.key === 'all' && stage === 'all')
-          const cfg = stageConfig[f.key]
+      {/* Filtros */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+        {FILTERS.map(f => {
+          const isActive = stage === f.key || (f.key === 'all' && stage === 'all')
           return (
             <Link key={f.key} href={f.href} style={{
-              padding: '6px 14px', borderRadius: 20, fontSize: 13, textDecoration: 'none',
-              background: active ? (cfg?.bg || '#a855f720') : '#1e1e2e',
-              color: active ? (cfg?.color || '#a855f7') : '#6b6b80',
-              fontWeight: active ? 600 : 400,
+              padding: '7px 14px', borderRadius: 20, fontSize: 13,
+              textDecoration: 'none',
+              background: isActive ? f.bg : '#fff',
+              color: isActive ? f.color : '#374151',
+              fontWeight: isActive ? 700 : 500,
+              border: `1.5px solid ${isActive ? f.color : '#e9edef'}`,
               display: 'flex', gap: 6, alignItems: 'center',
-              border: active ? `1px solid ${cfg?.color || '#a855f7'}40` : '1px solid transparent',
             }}>
               {f.label}
-              <span style={{ background: '#0a0a0f', padding: '1px 6px', borderRadius: 10, fontSize: 11 }}>{f.count}</span>
+              <span style={{
+                background: isActive ? f.color : '#f0f2f5',
+                color: isActive ? '#fff' : '#4b5563',
+                padding: '1px 7px', borderRadius: 10, fontSize: 11, fontWeight: 700,
+              }}>{f.count}</span>
             </Link>
           )
         })}
       </div>
 
-      {/* Table */}
-      <div style={{ background: '#111118', border: '1px solid #1e1e2e', borderRadius: 12, overflow: 'hidden' }}>
-        {/* Table header */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 120px 100px 80px 100px 120px', padding: '12px 20px', borderBottom: '1px solid #1e1e2e', fontSize: 11, color: '#4b4b5a', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+      {/* Tabela */}
+      <div style={{ background: '#fff', border: '1px solid #e9edef', borderRadius: 12, overflow: 'hidden' }}>
+        {/* Header */}
+        <div style={{
+          display: 'grid', gridTemplateColumns: '1fr 120px 120px 70px 120px 100px',
+          padding: '12px 20px', borderBottom: '1px solid #f0f2f5',
+          fontSize: 11.5, color: '#667781', fontWeight: 700,
+          textTransform: 'uppercase', letterSpacing: 0.6,
+          background: '#f9fafb',
+        }}>
           <span>Contato</span>
           <span>Estágio</span>
           <span>Score</span>
@@ -101,48 +119,69 @@ export default async function LeadsPage({ searchParams }) {
         </div>
 
         {leads.length === 0 ? (
-          <div style={{ padding: 60, textAlign: 'center', color: '#4b4b5a' }}>
+          <div style={{ padding: 60, textAlign: 'center' }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>👥</div>
-            <div>Nenhum lead ainda</div>
+            <div style={{ fontSize: 15, color: '#667781' }}>Nenhum lead ainda</div>
+            <div style={{ fontSize: 13, color: '#aab0b7', marginTop: 6 }}>Os contatos aparecerão aqui quando chegarem pelo WhatsApp</div>
           </div>
-        ) : leads.map(lead => {
-          const cfg = stageConfig[lead.stage] || stageConfig.new
+        ) : leads.map((lead, i) => {
+          const cfg = STAGE[lead.stage] || STAGE.new
+          const color = avatarColor(lead.phone)
           return (
-            <div key={lead.id} style={{ display: 'grid', gridTemplateColumns: '1fr 120px 100px 80px 100px 120px', padding: '14px 20px', borderBottom: '1px solid #151520', alignItems: 'center' }}>
-              {/* Phone */}
-              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-                <div style={{ width: 36, height: 36, borderRadius: '50%', background: `linear-gradient(135deg, ${cfg.color}60, ${cfg.color})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 700, color: '#fff', flexShrink: 0 }}>
+            <div key={lead.id} style={{
+              display: 'grid', gridTemplateColumns: '1fr 120px 120px 70px 120px 100px',
+              padding: '13px 20px',
+              borderBottom: i < leads.length - 1 ? '1px solid #f0f2f5' : 'none',
+              alignItems: 'center',
+            }}>
+              {/* Contato */}
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <div style={{
+                  width: 38, height: 38, borderRadius: '50%',
+                  background: color,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 14, fontWeight: 700, color: '#fff', flexShrink: 0,
+                }}>
                   {lead.phone?.slice(-2)}
                 </div>
                 <div>
-                  <div style={{ fontWeight: 600, fontSize: 14, color: '#e1e1e6' }}>{lead.phone}</div>
-                  <div style={{ fontSize: 11, color: '#4b4b5a' }}>{lead.conv_count} conversa{lead.conv_count != 1 ? 's' : ''}</div>
+                  <div style={{ fontWeight: 600, fontSize: 14, color: '#111b21' }}>{lead.phone}</div>
+                  <div style={{ fontSize: 11.5, color: '#667781', marginTop: 1 }}>{lead.conv_count} conversa{lead.conv_count != 1 ? 's' : ''}</div>
                 </div>
               </div>
 
-              {/* Stage */}
-              <span style={{ fontSize: 11, padding: '3px 10px', borderRadius: 20, background: cfg.bg, color: cfg.color, fontWeight: 600, display: 'inline-block' }}>{cfg.label}</span>
+              {/* Estágio */}
+              <span style={{
+                fontSize: 11.5, padding: '4px 10px', borderRadius: 20,
+                background: cfg.bg, color: cfg.color, fontWeight: 700,
+                display: 'inline-block',
+              }}>{cfg.label}</span>
 
-              {/* Score bar */}
+              {/* Score */}
               <div>
-                <div style={{ background: '#1e1e2e', borderRadius: 4, height: 4, overflow: 'hidden', marginBottom: 3 }}>
-                  <div style={{ width: `${lead.score}%`, height: '100%', background: `linear-gradient(90deg, #6366f1, #a855f7)` }} />
+                <div style={{ background: '#f0f2f5', borderRadius: 4, height: 5, overflow: 'hidden', marginBottom: 3 }}>
+                  <div style={{
+                    width: `${lead.score || 0}%`, height: '100%',
+                    background: (lead.score || 0) >= 70 ? '#25D366' : (lead.score || 0) >= 40 ? '#f59e0b' : '#e9edef',
+                    borderRadius: 4,
+                  }} />
                 </div>
-                <div style={{ fontSize: 11, color: '#a855f7', fontWeight: 600 }}>{lead.score}%</div>
+                <div style={{ fontSize: 12, color: '#374151', fontWeight: 700 }}>{lead.score || 0}%</div>
               </div>
 
               {/* Msgs */}
-              <span style={{ fontSize: 13, color: '#9090a0' }}>{lead.msg_count || 0}</span>
+              <span style={{ fontSize: 13.5, color: '#374151', fontWeight: 500 }}>{lead.msg_count || 0}</span>
 
-              {/* Last contact */}
-              <span style={{ fontSize: 12, color: '#6b6b80' }}>{timeAgo(lead.last_contact_at)}</span>
+              {/* Últ. contato */}
+              <span style={{ fontSize: 12.5, color: '#667781' }}>{timeAgo(lead.last_contact_at)}</span>
 
-              {/* Actions */}
-              <div style={{ display: 'flex', gap: 8 }}>
-                <Link href={`/admin/conversations?phone=${lead.phone}`} style={{
-                  fontSize: 11, padding: '5px 10px', borderRadius: 6,
-                  background: '#1e1e2e', color: '#a855f7', textDecoration: 'none',
-                  fontWeight: 500,
+              {/* Ações */}
+              <div>
+                <Link href={`/admin/conversations`} style={{
+                  fontSize: 12.5, padding: '6px 12px', borderRadius: 20,
+                  background: '#e9f5ee', color: '#128C7E',
+                  textDecoration: 'none', fontWeight: 600,
+                  border: '1px solid #b7e4c7',
                 }}>Ver chat</Link>
               </div>
             </div>

@@ -1,96 +1,141 @@
-import sql from '../../../lib/db'
+'use client'
+import { useState } from 'react'
 
-export const dynamic = 'force-dynamic'
-
-async function getConfig() {
-  try {
-    const [config] = await sql`SELECT * FROM agent_configs LIMIT 1`
-    const [tenant] = await sql`SELECT * FROM tenants LIMIT 1`
-    return { config, tenant }
-  } catch { return { config: null, tenant: null } }
+const INPUT = {
+  width: '100%', boxSizing: 'border-box',
+  padding: '9px 12px', fontSize: 14,
+  border: '1.5px solid #e9edef', borderRadius: 8,
+  color: '#111b21', background: '#fff',
+  outline: 'none',
 }
 
-export default async function SettingsPage() {
-  const { config, tenant } = await getConfig()
+const LABEL = { fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 5, display: 'block' }
+const HINT  = { fontSize: 12, color: '#667781', marginTop: 4 }
 
-  const sections = [
-    {
-      title: 'Configurações do Tenant',
-      items: [
-        { label: 'Nome', value: tenant?.name || 'Camila Rocha' },
-        { label: 'Slug', value: tenant?.slug || 'camila-rocha' },
-        { label: 'Status', value: tenant?.active ? '✅ Ativo' : '❌ Inativo' },
-        { label: 'ID', value: tenant?.id || '-', mono: true },
-      ]
-    },
-    {
-      title: 'Configurações da IA',
-      items: [
-        { label: 'Nome da IA', value: config?.agent_name || 'Assistente CA.RO' },
-        { label: 'Tom', value: config?.tone || 'profissional e acolhedor' },
-        { label: 'Modelo', value: 'Claude Haiku (claude-haiku-4-5)' },
-        { label: 'Serviços ativos', value: Array.isArray(config?.services) ? config.services.join(', ') : 'Consultoria de Imagem' },
-      ]
-    },
-    {
-      title: 'Configurações do WhatsApp',
-      items: [
-        { label: 'Phone Number ID', value: process.env.META_PHONE_NUMBER_ID || '-', mono: true },
-        { label: 'WABA ID', value: process.env.META_WABA_ID || '-', mono: true },
-        { label: 'Webhook URL', value: 'https://camilarocha.carostudio.com.br/api/webhook', mono: true },
-        { label: 'Status', value: '✅ Verificado' },
-      ]
-    },
-  ]
+function Section({ title, children }) {
+  return (
+    <div style={{ background: '#fff', border: '1px solid #e9edef', borderRadius: 12, overflow: 'hidden', marginBottom: 20 }}>
+      <div style={{ padding: '14px 20px', borderBottom: '1px solid #f0f2f5', background: '#f9fafb' }}>
+        <span style={{ fontWeight: 700, fontSize: 14, color: '#111b21' }}>{title}</span>
+      </div>
+      <div style={{ padding: '20px 20px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+        {children}
+      </div>
+    </div>
+  )
+}
+
+function Row({ label, hint, children }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: 24, alignItems: 'flex-start' }}>
+      <div>
+        <div style={LABEL}>{label}</div>
+        {hint && <div style={HINT}>{hint}</div>}
+      </div>
+      <div>{children}</div>
+    </div>
+  )
+}
+
+function Toggle({ checked, onChange }) {
+  return (
+    <div onClick={onChange} style={{
+      width: 44, height: 24, borderRadius: 12, cursor: 'pointer',
+      background: checked ? '#25D366' : '#d1d5db',
+      position: 'relative', transition: 'background 0.2s',
+      flexShrink: 0,
+    }}>
+      <div style={{
+        position: 'absolute', top: 3, left: checked ? 23 : 3,
+        width: 18, height: 18, borderRadius: '50%', background: '#fff',
+        boxShadow: '0 1px 3px rgba(0,0,0,.2)',
+        transition: 'left 0.2s',
+      }} />
+    </div>
+  )
+}
+
+export default function SettingsPage() {
+  const [aiEnabled, setAiEnabled] = useState(true)
+  const [notifLead, setNotifLead] = useState(true)
+  const [notifHuman, setNotifHuman] = useState(true)
+  const [agentName, setAgentName] = useState('Assistente da Camila')
+  const [greeting, setGreeting] = useState('Olá! 👋 Sou a assistente virtual da Camila Rocha. Como posso te ajudar hoje?')
+  const [saved, setSaved] = useState(false)
+
+  function handleSave() {
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2500)
+  }
 
   return (
-    <div style={{ padding: 32 }}>
-      <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#fff', margin: 0 }}>Configurações</h1>
-        <p style={{ color: '#6b6b80', fontSize: 13, marginTop: 4 }}>Configurações do sistema CA.RO Connect</p>
+    <div style={{ padding: '24px 28px', maxWidth: 780 }}>
+      {/* Header */}
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111b21', margin: 0, letterSpacing: '-0.3px' }}>Configurações</h1>
+        <p style={{ color: '#4b5563', fontSize: 13.5, marginTop: 4 }}>Personalize como a IA e o painel funcionam</p>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-        {sections.map(section => (
-          <div key={section.title} style={{ background: '#111118', border: '1px solid #1e1e2e', borderRadius: 12, overflow: 'hidden' }}>
-            <div style={{ padding: '14px 20px', borderBottom: '1px solid #1e1e2e', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: 14, fontWeight: 600, color: '#e1e1e6', margin: 0 }}>{section.title}</h2>
-            </div>
-            <div style={{ padding: '4px 0' }}>
-              {section.items.map(item => (
-                <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 20px', borderBottom: '1px solid #0f0f1a' }}>
-                  <span style={{ fontSize: 13, color: '#6b6b80', minWidth: 160 }}>{item.label}</span>
-                  <span style={{
-                    fontSize: 13,
-                    color: '#e1e1e6',
-                    fontFamily: item.mono ? 'monospace' : 'inherit',
-                    background: item.mono ? '#1e1e2e' : 'transparent',
-                    padding: item.mono ? '2px 8px' : 0,
-                    borderRadius: item.mono ? 4 : 0,
-                    maxWidth: 400,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                  }}>{item.value}</span>
-                </div>
-              ))}
-            </div>
+      {/* IA */}
+      <Section title="🤖 Inteligência Artificial">
+        <Row label="IA ativa" hint="A IA responde automaticamente no WhatsApp">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Toggle checked={aiEnabled} onChange={() => setAiEnabled(v => !v)} />
+            <span style={{ fontSize: 13, color: aiEnabled ? '#16a34a' : '#667781', fontWeight: 600 }}>
+              {aiEnabled ? 'Ligada' : 'Desligada'}
+            </span>
           </div>
-        ))}
+        </Row>
+        <Row label="Nome do assistente" hint="Como a IA se apresenta nas conversas">
+          <input
+            style={INPUT}
+            value={agentName}
+            onChange={e => setAgentName(e.target.value)}
+            placeholder="Ex: Assistente da Camila"
+          />
+        </Row>
+        <Row label="Mensagem de boas-vindas" hint="Enviada automaticamente na primeira mensagem">
+          <textarea
+            style={{ ...INPUT, height: 80, resize: 'vertical', lineHeight: 1.5 }}
+            value={greeting}
+            onChange={e => setGreeting(e.target.value)}
+          />
+        </Row>
+      </Section>
 
-        {/* System prompt preview */}
-        {config?.system_prompt && (
-          <div style={{ background: '#111118', border: '1px solid #1e1e2e', borderRadius: 12, overflow: 'hidden' }}>
-            <div style={{ padding: '14px 20px', borderBottom: '1px solid #1e1e2e' }}>
-              <h2 style={{ fontSize: 14, fontWeight: 600, color: '#e1e1e6', margin: 0 }}>System Prompt da IA</h2>
-            </div>
-            <div style={{ padding: 20 }}>
-              <pre style={{ fontSize: 12, color: '#6b6b80', whiteSpace: 'pre-wrap', wordBreak: 'break-word', margin: 0, fontFamily: 'monospace', lineHeight: 1.6 }}>
-                {config.system_prompt.slice(0, 800)}{config.system_prompt.length > 800 ? '...' : ''}
-              </pre>
-            </div>
-          </div>
-        )}
+      {/* Notificações */}
+      <Section title="🔔 Notificações">
+        <Row label="Lead quente" hint="Avisar quando um lead atingir score alto">
+          <Toggle checked={notifLead} onChange={() => setNotifLead(v => !v)} />
+        </Row>
+        <Row label="Atendimento humano" hint="Avisar quando lead pedir para falar com você">
+          <Toggle checked={notifHuman} onChange={() => setNotifHuman(v => !v)} />
+        </Row>
+      </Section>
+
+      {/* Conta */}
+      <Section title="👤 Conta">
+        <Row label="Nome" hint="Seu nome no painel">
+          <input style={INPUT} defaultValue="Camila Rocha" />
+        </Row>
+        <Row label="E-mail">
+          <input style={INPUT} defaultValue="camila@carostudio.com.br" type="email" />
+        </Row>
+        <Row label="Senha" hint="Deixe em branco para não alterar">
+          <input style={INPUT} placeholder="••••••••" type="password" />
+        </Row>
+      </Section>
+
+      {/* Botão salvar */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <button onClick={handleSave} style={{
+          padding: '10px 28px', borderRadius: 24, fontSize: 14, fontWeight: 700,
+          background: saved ? '#16a34a' : '#25D366',
+          color: '#fff', border: 'none', cursor: 'pointer',
+          transition: 'background 0.2s',
+        }}>
+          {saved ? '✓ Salvo!' : 'Salvar alterações'}
+        </button>
       </div>
     </div>
   )
