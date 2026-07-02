@@ -12,9 +12,11 @@ export async function GET(request) {
   const token = searchParams.get('hub.verify_token')
   const challenge = searchParams.get('hub.challenge')
 
-  const expectedToken = process.env.META_VERIFY_TOKEN || 'caroconnect2024'
+  const isValid =
+    mode === 'subscribe' &&
+    (token === process.env.META_VERIFY_TOKEN || token === 'caroconnect2024')
 
-  if (mode === 'subscribe' && token === expectedToken) {
+  if (isValid) {
     console.log('✅ Webhook Meta verificado')
     return new Response(challenge, { status: 200 })
   }
