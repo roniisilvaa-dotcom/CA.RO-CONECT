@@ -12,7 +12,9 @@ export async function GET(request) {
   const token = searchParams.get('hub.verify_token')
   const challenge = searchParams.get('hub.challenge')
 
-  if (mode === 'subscribe' && token === process.env.META_VERIFY_TOKEN) {
+  const expectedToken = process.env.META_VERIFY_TOKEN || 'caroconnect2024'
+
+  if (mode === 'subscribe' && token === expectedToken) {
     console.log('✅ Webhook Meta verificado')
     return new Response(challenge, { status: 200 })
   }
@@ -124,7 +126,7 @@ export async function POST(request) {
         await sendText(phone, result.message)
         console.log(`✅ Resposta para ${phone}`)
 
-        // Salva mensagens (o histórico fica no DB)
+        // Salva mensagens
         await sql`
           INSERT INTO messages (tenant_id, conversation_id, role, content)
           VALUES (${tenant_id}, ${conversationId}, 'user', ${text})
