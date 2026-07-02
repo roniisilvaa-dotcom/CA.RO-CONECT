@@ -145,7 +145,7 @@ export default function AdminLayout({ children }) {
               <div style={{ fontSize: 15, fontWeight: 700, color: '#111b21', letterSpacing: '-0.2px' }}>
                 CA·RO Connect
               </div>
-              <div style={{ fontSize: 11.5, color: '#667781', marginTop: 1 }}>Painel da Camila</div>
+              <div style={{ fontSize: 11.5, color: '#4b5563', marginTop: 1 }}>Painel da Camila</div>
             </div>
           </div>
 
@@ -156,9 +156,9 @@ export default function AdminLayout({ children }) {
                 {section.group && (
                   <div style={{
                     fontSize: 10.5,
-                    fontWeight: 600,
-                    color: '#aab0b7',
-                    letterSpacing: '0.6px',
+                    fontWeight: 700,
+                    color: '#6b7a85',
+                    letterSpacing: '0.7px',
                     textTransform: 'uppercase',
                     padding: '12px 12px 4px',
                   }}>
@@ -182,15 +182,15 @@ export default function AdminLayout({ children }) {
                         borderRadius: 8,
                         marginBottom: 2,
                         background: active ? '#e9f5ee' : 'transparent',
-                        color: active ? '#128C7E' : '#54656f',
+                        color: active ? '#128C7E' : '#2d3748',
                         fontSize: 14,
-                        fontWeight: active ? 600 : 400,
+                        fontWeight: active ? 600 : 500,
                       }}
                     >
                       <span style={{
                         display: 'flex',
                         alignItems: 'center',
-                        color: active ? '#128C7E' : '#aab0b7',
+                        color: active ? '#128C7E' : '#4b5563',
                         flexShrink: 0,
                       }}>
                         {item.icon}
@@ -231,13 +231,13 @@ export default function AdminLayout({ children }) {
               gap: 10,
               padding: '9px 12px',
               borderRadius: 8,
-              color: '#667781',
+              color: '#374151',
               fontSize: 13.5,
-              fontWeight: 400,
+              fontWeight: 500,
               marginBottom: 4,
               background: '#f0f2f5',
             }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#aab0b7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4b5563" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
                 <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
               </svg>
@@ -266,7 +266,7 @@ export default function AdminLayout({ children }) {
                 <div style={{ fontSize: 13.5, fontWeight: 600, color: '#111b21', lineHeight: 1.3 }}>Camila Rocha</div>
                 <div style={{ fontSize: 11.5, color: '#25D366', lineHeight: 1.3 }}>● Online</div>
               </div>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aab0b7" strokeWidth="2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6b7a85" strokeWidth="2">
                 <circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/>
               </svg>
             </div>

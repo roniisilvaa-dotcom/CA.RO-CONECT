@@ -40,8 +40,8 @@ function ConfigRow({ label, desc, children, last }) {
       borderBottom: last ? 'none' : '1px solid #f0f2f5',
     }}>
       <div>
-        <div style={{ fontSize: 13.5, fontWeight: 500, color: '#111b21' }}>{label}</div>
-        {desc && <div style={{ fontSize: 12.5, color: '#667781', marginTop: 2 }}>{desc}</div>}
+        <div style={{ fontSize: 13.5, fontWeight: 600, color: '#111b21' }}>{label}</div>
+        {desc && <div style={{ fontSize: 12.5, color: '#4b5563', marginTop: 2 }}>{desc}</div>}
       </div>
       <div style={{ flexShrink: 0 }}>{children}</div>
     </div>
@@ -155,7 +155,7 @@ export default function ChannelsPage() {
             onFocus={e => e.target.style.borderColor = '#25D366'}
             onBlur={e => e.target.style.borderColor = '#e9edef'}
           />
-          <div style={{ fontSize: 12, color: '#aab0b7', marginTop: 5 }}>
+          <div style={{ fontSize: 12, color: '#4b5563', marginTop: 5 }}>
             Enviada automaticamente ao primeiro contato
           </div>
         </div>
@@ -236,7 +236,7 @@ export default function ChannelsPage() {
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 15, fontWeight: 700, color: '#111b21' }}>Instagram</div>
-            <div style={{ fontSize: 12.5, color: '#aab0b7', marginTop: 1 }}>
+            <div style={{ fontSize: 12.5, color: '#4b5563', marginTop: 1 }}>
               Verificação Meta em andamento
             </div>
           </div>
@@ -279,7 +279,7 @@ export default function ChannelsPage() {
 
         {/* Saudação pré-configurada */}
         <div style={{ padding: '0 20px 20px' }}>
-          <div style={{ fontSize: 13, fontWeight: 500, color: '#aab0b7', marginBottom: 8 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 8 }}>
             Saudação pré-configurada (ativa após aprovação)
           </div>
           <div style={{
@@ -287,7 +287,7 @@ export default function ChannelsPage() {
             borderRadius: 10,
             padding: '12px 14px',
             fontSize: 13.5,
-            color: '#54656f',
+            color: '#2d3748',
             lineHeight: 1.6,
             border: '1px solid #e9edef',
           }}>
