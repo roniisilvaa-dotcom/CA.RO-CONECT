@@ -4,13 +4,6 @@ import sql from '../../../lib/db'
 export const dynamic = 'force-dynamic'
 
 export async function GET(request) {
-  const { searchParams } = new URL(request.url)
-  const token = searchParams.get('token')
-
-    if (token !== (process.env.META_VERIFY_TOKEN || 'caroconnect2024')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
   const results = {}
 
   try {
@@ -128,39 +121,31 @@ export async function GET(request) {
       ) VALUES (
         ${tenantId},
         'Assistente da Camila',
-        ${'Você é a assistente virtual da Camila Rocha. Tom: acolhedor, feminino, refinado, inspirador, elegante. Frases: "Sua imagem comunica antes da sua fala." / "Elegância também é posicionamento." / "Você não precisa de mais roupas. Precisa de direção." Nunca robótica. Sempre acolhe antes de vender. Uma pergunta por vez.'},
-        ${'Camila Rocha é consultora de imagem e estilo, palestrante e mentora de mulheres. Formada em duas escolas francesas de moda. Atende em mais de 15 países. Missão: ensinar mulheres a se vestirem com elegância, feminilidade e modéstia alinhada com valores cristãos.'},
+        ${'Voce e a assistente virtual da Camila Rocha. Tom: acolhedor, feminino, refinado, inspirador, elegante. Nunca robotica. Sempre acolhe antes de vender. Uma pergunta por vez.'},
+        ${'Camila Rocha e consultora de imagem e estilo, palestrante e mentora de mulheres.'},
         ${JSON.stringify([
-          { name: 'Consultoria de Imagem', description: 'Análise completa de coloração, biotipo, estilo e guarda-roupa. Presencial ou online.', price: 'Sob consulta' },
-          { name: 'Curso Geração do Estilo', description: 'Curso online completo para descobrir seu estilo pessoal com elegância cristã.', price: 'R$597 à vista ou 12x R$61,74', link: 'https://pay.kiwify.com.br/UDzj8bK' },
-          { name: 'Mentoria de Estilo', description: 'Acompanhamento individual e contínuo para transformação completa da imagem.', price: 'Sob consulta' },
-          { name: 'Coloração Pessoal', description: 'Descubra as cores que mais te favorecem.', price: 'Sob consulta' },
-          { name: 'Personal Styling', description: 'Montagem de looks para eventos, viagens ou guarda-roupa.', price: 'Sob consulta' },
-          { name: 'Palestras e Ministrações', description: 'Apresentações para empresas, igrejas e eventos sobre imagem cristã e feminilidade.', price: 'Sob consulta' }
+          { name: 'Curso Geracao do Estilo', price: 'R$597 ou 12x R$61,74', link: 'https://pay.kiwify.com.br/UDzj8bK' },
+          { name: 'Consultoria de Imagem', price: 'Sob consulta' }
         ])},
-        ${'P: Atende online?\nR: Sim, presencial e online.\nP: Quanto custa?\nR: Depende do serviço. Me conta sua maior dificuldade com a imagem para eu indicar o melhor caminho.\nP: Como agendar?\nR: Me conta o serviço que deseja, data preferida e seu nome!'},
-        ${'Olá! Seja muito bem-vinda 🌸\n\nSou a assistente da Camila Rocha. A Camila ajuda mulheres a desenvolverem uma imagem elegante, feminina e com propósito.\n\nMe conta: o que te trouxe até aqui hoje? ✨'},
-        ${'Olá! 🌸 No momento estou fora do horário de atendimento, mas já vi sua mensagem! Retorno em breve. Enquanto isso, me siga no Instagram @eusoucamilarocha 💕'}
+        ${''},
+        ${'Ola! Seja muito bem-vinda! Sou a assistente da Camila Rocha. Me conta: o que te trouxe ate aqui hoje?'},
+        ${'Ola! No momento estou fora do horario de atendimento. Retorno em breve!'}
       )
       ON CONFLICT (tenant_id) DO UPDATE SET
         agent_persona = EXCLUDED.agent_persona,
-        services = EXCLUDED.services,
-        greeting_message = EXCLUDED.greeting_message,
         updated_at = NOW()
     `
     results.agentConfig = 'ok'
 
-    // 4. Canal WhatsApp — com phone_number_id correto
+    // 4. Canal WhatsApp
     const phoneNumberId = process.env.META_PHONE_NUMBER_ID || '1251650848022372'
-
-    // Remove canais antigos e recria com identifier correto
     await sql`DELETE FROM channels WHERE tenant_id = ${tenantId} AND type = 'whatsapp_meta'`
     await sql`
       INSERT INTO channels (tenant_id, type, identifier, status)
       VALUES (${tenantId}, 'whatsapp_meta', ${phoneNumberId}, 'connected')
     `
-    results.channel = `whatsapp_meta:${phoneNumberId}`
-    
+    results.channelWhatsapp = 'whatsapp_meta:' + phoneNumberId
+
     // 5. Canal Instagram
     await sql`
       INSERT INTO channels (tenant_id, type, identifier, status)
@@ -169,13 +154,8 @@ export async function GET(request) {
     `
     results.channelInstagram = 'instagram:eusoucamilarocha'
 
-
-    // 5. Verificar estado final
     const channels = await sql`SELECT type, identifier, status FROM channels WHERE tenant_id = ${tenantId}`
     results.channels = channels
-
-    const tenants = await sql`SELECT slug, name, plan FROM tenants WHERE id = ${tenantId}`
-    results.tenant = tenants[0]
 
     return NextResponse.json({ success: true, ...results })
   } catch (err) {
