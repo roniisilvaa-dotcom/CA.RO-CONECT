@@ -4,58 +4,81 @@ import sql from '../../../../lib/db'
 export const dynamic = 'force-dynamic'
 
 // GET /api/admin/migrate — roda todas as migrations necessárias
-// Chamar uma vez para atualizar o schema do banco
+// Idempotente — pode ser chamado várias vezes sem problema
 export async function GET() {
   const results = []
+  const errors = []
 
-  try {
-    // 1. Colunas novas na tabela tenants
-    await sql`ALTER TABLE tenants ADD COLUMN IF NOT EXISTS coexistence_enabled BOOLEAN DEFAULT false`
-    results.push('tenants.coexistence_enabled ✓')
+  async function run(label, fn) {
+    try {
+      await fn()
+      results.push(`${label} ✓`)
+    } catch (err) {
+      errors.push(`${label} ✗ — ${err.message}`)
+      console.error(`Migration [${label}] error:`, err.message)
+    }
+  }
 
-    await sql`ALTER TABLE tenants ADD COLUMN IF NOT EXISTS slug_v2 TEXT`
-    // Manter compatibilidade com slug VARCHAR(100) UNIQUE já existente
-    results.push('tenants.slug (já existe) ✓')
+  // 1. Colunas novas na tabela tenants
+  await run('tenants.coexistence_enabled', () =>
+    sql`ALTER TABLE tenants ADD COLUMN IF NOT EXISTS coexistence_enabled BOOLEAN DEFAULT false`
+  )
 
-    // 2. Colunas novas na tabela agent_configs
-    await sql`ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS system_prompt TEXT`
-    results.push('agent_configs.system_prompt ✓')
+  // 2. Colunas novas na tabela agent_configs
+  await run('agent_configs.system_prompt', () =>
+    sql`ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS system_prompt TEXT`
+  )
+  await run('agent_configs.ai_enabled', () =>
+    sql`ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS ai_enabled BOOLEAN DEFAULT true`
+  )
+  await run('agent_configs: agent_persona → system_prompt', () =>
+    sql`UPDATE agent_configs SET system_prompt = agent_persona WHERE system_prompt IS NULL AND agent_persona IS NOT NULL`
+  )
 
-    await sql`ALTER TABLE agent_configs ADD COLUMN IF NOT EXISTS ai_enabled BOOLEAN DEFAULT true`
-    results.push('agent_configs.ai_enabled ✓')
+  // 3. Colunas novas na tabela channels
+  await run('channels.enabled', () =>
+    sql`ALTER TABLE channels ADD COLUMN IF NOT EXISTS enabled BOOLEAN DEFAULT true`
+  )
 
-    // Copiar agent_persona para system_prompt onde system_prompt for null
-    await sql`
-      UPDATE agent_configs
-      SET system_prompt = agent_persona
-      WHERE system_prompt IS NULL AND agent_persona IS NOT NULL
+  // Deduplicar channels antes de criar o índice único
+  await run('channels: deduplicar tenant+type', () =>
+    sql`
+      DELETE FROM channels a
+      USING channels b
+      WHERE a.id < b.id
+        AND a.tenant_id = b.tenant_id
+        AND a.type = b.type
     `
-    results.push('agent_configs: agent_persona → system_prompt ✓')
+  )
 
-    // 3. Colunas novas na tabela channels
-    await sql`ALTER TABLE channels ADD COLUMN IF NOT EXISTS enabled BOOLEAN DEFAULT true`
-    results.push('channels.enabled ✓')
-
-    // Index único para evitar duplicata de canal por tenant
-    await sql`
+  // Agora criar o índice único com segurança
+  await run('channels: unique index tenant+type', () =>
+    sql`
       CREATE UNIQUE INDEX IF NOT EXISTS channels_tenant_type_unique
       ON channels(tenant_id, type)
     `
-    results.push('channels: unique index tenant+type ✓')
+  )
 
-    // 4. Colunas novas na tabela messages
-    await sql`ALTER TABLE messages ADD COLUMN IF NOT EXISTS whatsapp_message_id TEXT`
-    results.push('messages.whatsapp_message_id ✓')
-
-    await sql`
+  // 4. Colunas novas na tabela messages
+  await run('messages.whatsapp_message_id', () =>
+    sql`ALTER TABLE messages ADD COLUMN IF NOT EXISTS whatsapp_message_id TEXT`
+  )
+  await run('messages: index whatsapp_message_id', () =>
+    sql`
       CREATE INDEX IF NOT EXISTS messages_wamid_idx
       ON messages(whatsapp_message_id)
       WHERE whatsapp_message_id IS NOT NULL
     `
-    results.push('messages: index whatsapp_message_id ✓')
+  )
 
-    // 5. Criar tabela knowledge_base se não existir
-    await sql`
+  // 5. Coluna channel_conversation_id nas conversations (para responder Instagram)
+  await run('conversations.channel_conversation_id', () =>
+    sql`ALTER TABLE conversations ADD COLUMN IF NOT EXISTS channel_conversation_id TEXT`
+  )
+
+  // 6. Criar tabela knowledge_base se não existir
+  await run('knowledge_base table', () =>
+    sql`
       CREATE TABLE IF NOT EXISTS knowledge_base (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         tenant_id UUID REFERENCES tenants(id) ON DELETE CASCADE,
@@ -65,19 +88,11 @@ export async function GET() {
         created_at TIMESTAMP DEFAULT NOW()
       )
     `
-    results.push('knowledge_base table ✓')
+  )
 
-    // 6. Atualizar canal Instagram da Camila para usar PSID corretamente
-    // (identifier deve ser o USER ID do Instagram, não o username)
-    results.push('Canal Instagram: verificar manualmente se identifier = META_IG_USER_ID ✓')
-
-    return NextResponse.json({ success: true, migrations: results })
-  } catch (err) {
-    console.error('Migration error:', err)
-    return NextResponse.json({
-      success: false,
-      error: err.message,
-      completed: results
-    }, { status: 500 })
-  }
+  return NextResponse.json({
+    success: errors.length === 0,
+    migrations: results,
+    errors,
+  })
 }
