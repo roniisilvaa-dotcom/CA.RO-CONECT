@@ -12,8 +12,7 @@ export async function GET(request) {
   const token     = searchParams.get('hub.verify_token')
   const challenge = searchParams.get('hub.challenge')
 
-  if (mode === 'subscribe' && token === process.env.META_VERIFY_TOKEN) {
-    console.log('✅ Webhook Instagram verificado')
+  if (mode === 'subscribe' && token === (process.env.META_VERIFY_TOKEN || 'caroconnect2024')) {    console.log('✅ Webhook Instagram verificado')
     return new Response(challenge, { status: 200 })
   }
   return new Response('Forbidden', { status: 403 })
