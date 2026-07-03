@@ -11,6 +11,12 @@ export default function NovoClientePage() {
   const [error, setError] = useState('')
   const [fbLoaded, setFbLoaded] = useState(false)
 
+  // Instagram state
+  const [igUserId, setIgUserId] = useState('')
+  const [igSaving, setIgSaving] = useState(false)
+  const [igSaved, setIgSaved] = useState(false)
+  const [igError, setIgError] = useState('')
+
   // Carregar Meta SDK
   useEffect(() => {
     if (window.FB) { setFbLoaded(true); return }
@@ -80,12 +86,32 @@ export default function NovoClientePage() {
         response_type: 'code',
         override_default_response_type: true,
         extras: {
-          featuretype: 'coexistence', // ← Ativa Coexistence (celular + API simultâneo)
+          featuretype: 'coexistence',
           sessioninfoversion: 2,
           setup: {},
         },
       }
     )
+  }
+
+  async function handleConnectInstagram() {
+    if (!igUserId.trim()) { setIgError('Digite o ID numérico do Instagram Business'); return }
+    setIgSaving(true)
+    setIgError('')
+    try {
+      const res = await fetch('/api/caro-admin/instagram-channel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenantId: result?.tenantId, igUserId: igUserId.trim() }),
+      })
+      const data = await res.json()
+      if (data.error) throw new Error(data.error)
+      setIgSaved(true)
+    } catch (err) {
+      setIgError(err.message)
+    } finally {
+      setIgSaving(false)
+    }
   }
 
   // ── Passo 1: Informações do cliente ──
@@ -204,18 +230,18 @@ export default function NovoClientePage() {
     )
   }
 
-  // ── Passo 3: Sucesso ──
+  // ── Passo 3: Sucesso + Instagram opcional ──
   if (step === 'done') {
     return (
       <PageLayout title="Cliente conectado! 🎉" subtitle={form.name}>
-        <div style={{ textAlign: 'center', padding: '20px 0' }}>
+        <div style={{ textAlign: 'center', padding: '20px 0 0' }}>
           <div style={{ fontSize: 64, marginBottom: 16 }}>✅</div>
           <div style={{ color: '#86efac', fontSize: 18, fontWeight: 600, marginBottom: 8 }}>WhatsApp conectado com Coexistence</div>
-          <div style={{ color: '#888', fontSize: 14, marginBottom: 32 }}>
+          <div style={{ color: '#888', fontSize: 14, marginBottom: 28 }}>
             O celular e a plataforma estão sincronizados. A IA já está respondendo.
           </div>
 
-          <div style={{ background: '#111', border: '1px solid #222', borderRadius: 12, padding: 20, textAlign: 'left', marginBottom: 24 }}>
+          <div style={{ background: '#111', border: '1px solid #222', borderRadius: 12, padding: 20, textAlign: 'left', marginBottom: 28 }}>
             <div style={{ fontSize: 13, color: '#888', marginBottom: 12 }}>Detalhes do cliente:</div>
             <div style={{ display: 'grid', gap: 8 }}>
               <Row label="Nome" value={form.name} />
@@ -226,15 +252,70 @@ export default function NovoClientePage() {
               <Row label="IA" value="✅ Ativa" />
             </div>
           </div>
+        </div>
 
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-            <button onClick={() => router.push('/caro-admin/clientes')} style={btnSecondaryStyle}>
-              Ver todos os clientes
-            </button>
-            <button onClick={() => router.push(`/admin?tenant=${result?.tenantId}`)} style={btnPrimaryStyle}>
-              Abrir painel do cliente →
-            </button>
+        {/* ── Conectar Instagram (opcional) ── */}
+        <div style={{ background: '#0d0d1a', border: '1px solid #2a2a4a', borderRadius: 12, padding: 24, marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+            <span style={{ fontSize: 22 }}>📸</span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 15, color: '#c084fc' }}>Conectar Instagram (opcional)</div>
+              <div style={{ fontSize: 12, color: '#666', marginTop: 2 }}>A IA também responderá mensagens diretas do Instagram</div>
+            </div>
+            {igSaved && (
+              <span style={{ marginLeft: 'auto', background: '#1e1a2e', border: '1px solid #7c3aed', color: '#c084fc', fontSize: 11, padding: '3px 10px', borderRadius: 20, fontWeight: 600 }}>
+                ✅ Conectado
+              </span>
+            )}
           </div>
+
+          {!igSaved ? (
+            <>
+              <div style={{ background: '#13131f', border: '1px solid #2a2a4a', borderRadius: 8, padding: '10px 14px', marginTop: 16, marginBottom: 14, fontSize: 12, color: '#888', lineHeight: 1.7 }}>
+                <strong style={{ color: '#a78bfa' }}>Como encontrar o ID numérico:</strong><br />
+                1. Acesse <strong style={{ color: '#ccc' }}>business.facebook.com</strong><br />
+                2. Vá em <strong style={{ color: '#ccc' }}>Configurações → Contas Instagram</strong><br />
+                3. Clique na conta → o ID numérico aparece na URL ou nas configurações
+              </div>
+
+              <div style={{ display: 'flex', gap: 10 }}>
+                <input
+                  type="text"
+                  value={igUserId}
+                  onChange={e => setIgUserId(e.target.value)}
+                  placeholder="Ex: 17841400123456789"
+                  style={{ ...inputStyle, flex: 1 }}
+                />
+                <button
+                  onClick={handleConnectInstagram}
+                  disabled={igSaving}
+                  style={{
+                    background: igSaving ? '#333' : 'linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045)',
+                    color: '#fff', border: 'none', padding: '10px 20px',
+                    borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: igSaving ? 'not-allowed' : 'pointer',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {igSaving ? 'Salvando...' : 'Conectar IG'}
+                </button>
+              </div>
+
+              {igError && <div style={{ color: '#f87171', fontSize: 12, marginTop: 8 }}>{igError}</div>}
+            </>
+          ) : (
+            <div style={{ marginTop: 12, padding: '10px 14px', background: '#1a1a2e', borderRadius: 8, fontSize: 13, color: '#a78bfa' }}>
+              📸 Instagram Business ID <span style={{ fontFamily: 'monospace', color: '#c084fc' }}>{igUserId}</span> salvo. A IA responderá DMs automaticamente.
+            </div>
+          )}
+        </div>
+
+        <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+          <button onClick={() => router.push('/caro-admin/clientes')} style={btnSecondaryStyle}>
+            Ver todos os clientes
+          </button>
+          <button onClick={() => router.push(`/admin?tenant=${result?.tenantId}`)} style={btnPrimaryStyle}>
+            Abrir painel do cliente →
+          </button>
         </div>
       </PageLayout>
     )
