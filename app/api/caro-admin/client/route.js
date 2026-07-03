@@ -45,9 +45,11 @@ export async function GET(request) {
     // Últimas conversas
     const conversations = await sql`
       SELECT
-        c.id, c.customer_phone, c.status, c.created_at,
+        c.id, c.channel, c.status, c.created_at,
+        l.phone AS customer_phone,
         (SELECT content FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) AS last_message
       FROM conversations c
+      LEFT JOIN leads l ON l.id = c.lead_id
       WHERE c.tenant_id = ${id}
       ORDER BY c.created_at DESC
       LIMIT 10
