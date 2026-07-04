@@ -1,4 +1,4 @@
-•import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { CAMILA_AGENT_CONFIG } from '../../../lib/camila-agent'
 import sql from '../../../lib/db'
