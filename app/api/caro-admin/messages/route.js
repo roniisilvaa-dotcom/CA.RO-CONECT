@@ -1,44 +1,65 @@
-import { NextResponse } from 'next/server'
-import sql from '../../../../lib/db'
+import { neon } from '@neondatabase/serverless'
 
-export const dynamic = 'force-dynamic'
+const sql = neon(process.env.DATABASE_URL)
 
-export async function GET(request) {
+export async function GET(req) {
+  const { searchParams } = new URL(req.url)
+  const convId = searchParams.get('conv_id')
+  const limit = Math.min(parseInt(searchParams.get('limit') || '150'), 500)
+
+  if (!convId) {
+    return Response.json({ error: 'conv_id required' }, { status: 400 })
+  }
+
   try {
-    const { searchParams } = new URL(request.url)
-    const conversationId = searchParams.get('conversationId')
-    if (!conversationId) {
-      return NextResponse.json({ error: 'conversationId obrigatorio' }, { status: 400 })
+    const rows = await sql(
+      `SELECT
+         m.id,
+         m.conversation_id,
+         m.direction,
+         m.content,
+         m.content_type,
+         m.media_url,
+         m.media_type,
+         m.wa_message_id,
+         m.created_at,
+         c.customer_name,
+         c.customer_phone,
+         c.channel,
+         c.tenant_id
+       FROM messages m
+       JOIN conversations c ON c.id = m.conversation_id
+       WHERE m.conversation_id = $1
+       ORDER BY m.created_at ASC
+       LIMIT $2`,
+      [convId, limit]
+    )
+
+    return Response.json({ messages: rows, total: rows.length })
+  } catch (e) {
+    console.error('[messages] GET error:', e)
+    return Response.json({ error: e.message }, { status: 500 })
+  }
+}
+
+export async function POST(req) {
+  try {
+    const { conv_id, content, direction = 'outbound', content_type = 'text' } = await req.json()
+
+    if (!conv_id || !content) {
+      return Response.json({ error: 'conv_id and content required' }, { status: 400 })
     }
 
-    const messages = await sql`
-      SELECT
-        m.id,
-        m.conversation_id,
-        m.direction,
-        m.content,
-        m.created_at,
-        m.metadata
-      FROM messages m
-      WHERE m.conversation_id = ${conversationId}
-      ORDER BY m.created_at ASC
-      LIMIT 200
-    `
+    const rows = await sql(
+      `INSERT INTO messages (conversation_id, direction, content, content_type, created_at)
+       VALUES ($1, $2, $3, $4, NOW())
+       RETURNING id, conversation_id, direction, content, content_type, created_at`,
+      [conv_id, direction, content, content_type]
+    )
 
-    const [conversation] = await sql`
-      SELECT
-        c.id, c.channel, c.status, c.ai_enabled, c.tenant_id,
-        l.name as customer_name, l.phone as customer_phone, l.score as lead_score,
-        t.name as tenant_name
-      FROM conversations c
-      LEFT JOIN leads l ON l.id = c.lead_id
-      LEFT JOIN tenants t ON t.id = c.tenant_id
-      WHERE c.id = ${conversationId}
-    `
-
-    return NextResponse.json({ messages, conversation })
-  } catch (err) {
-    console.error('Messages route error:', err)
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    return Response.json({ ok: true, message: rows[0] })
+  } catch (e) {
+    console.error('[messages] POST error:', e)
+    return Response.json({ error: e.message }, { status: 500 })
   }
 }
