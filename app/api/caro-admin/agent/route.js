@@ -1,8 +1,10 @@
+// app/api/caro-admin/agent/route.js
 import { neon } from '@neondatabase/serverless'
 
-const sql = neon(process.env.DATABASE_URL)
+export const dynamic = 'force-dynamic'
 
 export async function GET(req) {
+  const sql = neon(process.env.DATABASE_URL)
   const { searchParams } = new URL(req.url)
   const tenantId = searchParams.get('tenant_id')
 
@@ -15,19 +17,18 @@ export async function GET(req) {
       `SELECT
          ac.id,
          ac.tenant_id,
-         ac.assistant_name,
+         ac.agent_name,
          ac.system_prompt,
-         ac.personality,
-         ac.max_response_length,
          ac.ai_enabled,
+         ac.agent_persona,
+         ac.business_description,
          ac.created_at,
          ac.updated_at,
          t.name         AS tenant_name,
-         t.business_name,
          t.slug,
          t.status       AS tenant_status,
          t.plan
-       FROM agent_config ac
+       FROM agent_configs ac
        JOIN tenants t ON t.id = ac.tenant_id
        WHERE ac.tenant_id = $1
        LIMIT 1`,
@@ -46,14 +47,15 @@ export async function GET(req) {
 }
 
 export async function PUT(req) {
+  const sql = neon(process.env.DATABASE_URL)
   try {
     const {
       tenant_id,
-      assistant_name,
+      agent_name,
       system_prompt,
-      personality,
-      max_response_length,
       ai_enabled,
+      agent_persona,
+      business_description,
     } = await req.json()
 
     if (!tenant_id) {
@@ -61,16 +63,16 @@ export async function PUT(req) {
     }
 
     await sql(
-      `UPDATE agent_config
+      `UPDATE agent_configs
        SET
-         assistant_name      = COALESCE($2, assistant_name),
-         system_prompt       = COALESCE($3, system_prompt),
-         personality         = COALESCE($4, personality),
-         max_response_length = COALESCE($5, max_response_length),
-         ai_enabled          = COALESCE($6, ai_enabled),
-         updated_at          = NOW()
+         agent_name           = COALESCE($2, agent_name),
+         system_prompt        = COALESCE($3, system_prompt),
+         ai_enabled           = COALESCE($4, ai_enabled),
+         agent_persona        = COALESCE($5, agent_persona),
+         business_description = COALESCE($6, business_description),
+         updated_at           = NOW()
        WHERE tenant_id = $1`,
-      [tenant_id, assistant_name ?? null, system_prompt ?? null, personality ?? null, max_response_length ?? null, ai_enabled ?? null]
+      [tenant_id, agent_name ?? null, system_prompt ?? null, ai_enabled ?? null, agent_persona ?? null, business_description ?? null]
     )
 
     return Response.json({ ok: true })
