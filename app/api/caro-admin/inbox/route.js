@@ -22,7 +22,7 @@ export async function GET(request) {
     if (status)   { params.push(status);    filters.push(`c.status = $${params.length}`) }
     if (search)   {
       params.push(`%${search}%`)
-      filters.push(`(c.customer_name ILIKE $${params.length} OR c.customer_phone ILIKE $${params.length})`)
+      filters.push(`(l.name ILIKE $${params.length} OR l.phone ILIKE $${params.length})`)
     }
 
     const whereClause = filters.join(' AND ')
@@ -36,28 +36,29 @@ export async function GET(request) {
         c.channel,
         c.status,
         c.ai_enabled,
-        c.customer_name,
-        c.customer_phone,
         c.created_at,
+        l.name     AS customer_name,
+        l.phone    AS customer_phone,
+        l.stage    AS lead_stage,
+        l.score    AS lead_score,
         t.name          AS tenant_name,
-        t.business_name AS tenant_business,
         t.slug          AS tenant_slug,
         t.status        AS tenant_status,
         (SELECT content    FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) AS last_message,
-        (SELECT direction  FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) AS last_message_direction,
-        (SELECT content_type FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) AS last_message_type,
+        (SELECT role       FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) AS last_message_direction,
         (SELECT created_at FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) AS last_message_at,
         (SELECT COUNT(*)::int FROM messages WHERE conversation_id = c.id)                               AS message_count,
         (SELECT COUNT(*)::int FROM messages
           WHERE conversation_id = c.id
-            AND direction = 'inbound'
+            AND role = 'user'
             AND created_at > COALESCE(
-              (SELECT MAX(created_at) FROM messages WHERE conversation_id = c.id AND direction = 'outbound'),
+              (SELECT MAX(created_at) FROM messages WHERE conversation_id = c.id AND role = 'assistant'),
               '1970-01-01'
             )
         ) AS unread_count
       FROM conversations c
       JOIN tenants t ON t.id = c.tenant_id
+      LEFT JOIN leads l ON l.id = c.lead_id
       WHERE ${whereClause}
       ORDER BY last_message_at DESC NULLS LAST
       LIMIT $${limitIdx} OFFSET $${offsetIdx}`,
@@ -80,9 +81,9 @@ export async function GET(request) {
           AND EXISTS (
             SELECT 1 FROM messages m
             WHERE m.conversation_id = c.id
-              AND m.direction = 'inbound'
+              AND m.role = 'user'
               AND m.created_at > COALESCE(
-                (SELECT MAX(created_at) FROM messages WHERE conversation_id = c.id AND direction = 'outbound'),
+                (SELECT MAX(created_at) FROM messages WHERE conversation_id = c.id AND role = 'assistant'),
                 '1970-01-01'
               )
           ))::int AS with_unread
@@ -92,7 +93,7 @@ export async function GET(request) {
       sfParams
     )
 
-    // Total geral para paginação
+    // Total para paginação
     const countParams  = []
     const countFilters = ['1=1']
     if (tenantId) { countParams.push(tenantId); countFilters.push(`c.tenant_id = $${countParams.length}`) }
