@@ -21,7 +21,6 @@ const C = {
   mutedL:  '#8A9BC0',
 }
 
-// Clientes estáticos conhecidos (fallback enquanto API carrega)
 const KNOWN_CLIENTS = [
   {
     id: 'camila-rocha',
@@ -95,18 +94,26 @@ function MiniBar({ data, color }) {
   )
 }
 
-// ─── MODAL NOVO CLIENTE — formulário real ─────────────────────────────────────
+function fmtTime(ts) {
+  if (!ts) return ''
+  const d = new Date(ts)
+  const now = new Date()
+  const diff = now - d
+  if (diff < 60000)    return 'agora'
+  if (diff < 3600000)  return `${Math.floor(diff/60000)}min`
+  if (diff < 86400000) return d.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' })
+  return d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })
+}
+
+// ─── MODAL NOVO CLIENTE ────────────────────────────────────────────────────────
 function NovoClienteModal({ onClose, onCreated }) {
-  const [step,    setStep]    = useState('form') // 'form' | 'success'
+  const [step,    setStep]    = useState('form')
   const [saving,  setSaving]  = useState(false)
   const [error,   setError]   = useState(null)
   const [result,  setResult]  = useState(null)
+  const [copied,  setCopied]  = useState(false)
   const [form, setForm] = useState({
-    name:             '',
-    business_name:    '',
-    whatsapp_phone:   '',
-    instagram_handle: '',
-    plan:             'starter',
+    name: '', business_name: '', whatsapp_phone: '', instagram_handle: '', plan: 'starter',
   })
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
@@ -138,16 +145,26 @@ function NovoClienteModal({ onClose, onCreated }) {
     setSaving(false)
   }
 
+  const setupLink = result ? `${typeof window !== 'undefined' ? window.location.origin : 'https://connect.carostudio.com.br'}/portal/${result?.tenant?.id}/setup` : ''
+
+  const copyLink = () => {
+    if (!setupLink) return
+    navigator.clipboard.writeText(setupLink).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2500)
+    })
+  }
+
   const inputSt = {
     width: '100%', padding: '10px 13px', borderRadius: 10, border: `1px solid ${C.borderL}`,
-    background: C.surf2, color: C.text, fontSize: 13, outline: 'none',
+    background: C.surf2, color: C.text, fontSize: 13, outline: 'none', boxSizing: 'border-box',
   }
   const labelSt = { fontSize: 11, color: C.muted, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: 5, display: 'block' }
 
   return (
     <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,.75)', backdropFilter:'blur(4px)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center' }}
       onClick={onClose}>
-      <div style={{ background:C.surf, border:`1px solid ${C.borderL}`, borderRadius:20, padding:32, width:480, maxWidth:'90vw', maxHeight:'90vh', overflowY:'auto' }}
+      <div style={{ background:C.surf, border:`1px solid ${C.borderL}`, borderRadius:20, padding:32, width:500, maxWidth:'90vw', maxHeight:'90vh', overflowY:'auto' }}
         onClick={e=>e.stopPropagation()}>
 
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
@@ -156,7 +173,7 @@ function NovoClienteModal({ onClose, onCreated }) {
               {step === 'form' ? 'Novo Cliente' : '✅ Cliente Criado!'}
             </div>
             <div style={{ fontSize:12, color:C.muted, marginTop:3 }}>
-              {step === 'form' ? 'Preencha os dados para cadastrar' : 'Configure os próximos passos'}
+              {step === 'form' ? 'Preencha os dados para cadastrar' : 'Envie o link de configuração ao cliente'}
             </div>
           </div>
           <button onClick={onClose}
@@ -211,24 +228,54 @@ function NovoClienteModal({ onClose, onCreated }) {
           </div>
         ) : (
           <div>
-            <div style={{ background:C.surf2, borderRadius:14, padding:'18px 20px', marginBottom:16 }}>
-              <div style={{ fontSize:14, fontWeight:700, color:C.text, marginBottom:4 }}>{result?.tenant?.name}</div>
-              <div style={{ fontSize:12, color:C.muted, marginBottom:10 }}>{result?.tenant?.business_name}</div>
-              <div style={{ fontSize:11, color:C.mutedL }}>
+            {/* Info do cliente */}
+            <div style={{ background:C.surf2, borderRadius:14, padding:'16px 18px', marginBottom:16 }}>
+              <div style={{ fontSize:14, fontWeight:700, color:C.text, marginBottom:2 }}>{result?.tenant?.name}</div>
+              <div style={{ fontSize:12, color:C.muted }}>{result?.tenant?.business_name}</div>
+              <div style={{ fontSize:11, color:C.mutedL, marginTop:6 }}>
                 ID: <code style={{ color:C.gold, fontSize:11 }}>{result?.tenant?.id}</code>
               </div>
             </div>
-            <div style={{ marginBottom:16 }}>
-              <div style={{ fontSize:12, color:C.muted, fontWeight:600, marginBottom:8, textTransform:'uppercase', letterSpacing:'0.05em' }}>
-                Próximos passos
+
+            {/* Link de configuração */}
+            <div style={{ background:`${C.gold}12`, border:`1px solid ${C.gold}44`, borderRadius:14, padding:'16px 18px', marginBottom:16 }}>
+              <div style={{ fontSize:12, fontWeight:700, color:C.gold, marginBottom:8, textTransform:'uppercase', letterSpacing:'0.05em' }}>
+                🔗 Link de Configuração da IA
               </div>
-              {(result?.next_steps || []).map((step, i) => (
-                <div key={i} style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 0', borderBottom:`1px solid ${C.border}` }}>
-                  <div style={{ width:20, height:20, borderRadius:'50%', background:`${C.gold}22`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, color:C.gold, flexShrink:0 }}>{i+1}</div>
-                  <span style={{ fontSize:12, color:C.mutedL }}>{step}</span>
-                </div>
-              ))}
+              <div style={{ fontSize:12, color:C.mutedL, marginBottom:12, lineHeight:1.6 }}>
+                Envie este link para <strong style={{ color:C.text }}>{result?.tenant?.name}</strong> configurar a IA dela (nome, persona, documentos).
+              </div>
+              <div style={{
+                background: C.surf, border:`1px solid ${C.borderL}`, borderRadius:10,
+                padding:'10px 12px', fontSize:11, color:C.mutedL, wordBreak:'break-all',
+                marginBottom:10, fontFamily:'monospace',
+              }}>
+                {setupLink}
+              </div>
+              <button onClick={copyLink}
+                style={{
+                  width:'100%', padding:'10px', borderRadius:10, border:'none',
+                  background: copied ? `${C.green}22` : `linear-gradient(135deg,${C.gold},${C.goldL}80)`,
+                  color: copied ? C.green : '#1a1000', fontSize:13, cursor:'pointer', fontWeight:700,
+                  transition:'all .2s',
+                }}>
+                {copied ? '✓ Link copiado!' : '📋 Copiar Link'}
+              </button>
             </div>
+
+            {/* Próximos passos */}
+            {(result?.next_steps||[]).length > 0 && (
+              <div style={{ marginBottom:16 }}>
+                <div style={{ fontSize:11, color:C.muted, fontWeight:600, marginBottom:8, textTransform:'uppercase', letterSpacing:'0.05em' }}>Próximos passos</div>
+                {(result.next_steps || []).map((s, i) => (
+                  <div key={i} style={{ display:'flex', alignItems:'center', gap:8, padding:'7px 0', borderBottom:`1px solid ${C.border}` }}>
+                    <div style={{ width:20, height:20, borderRadius:'50%', background:`${C.gold}22`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, color:C.gold, flexShrink:0 }}>{i+1}</div>
+                    <span style={{ fontSize:12, color:C.mutedL }}>{s}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <button onClick={onClose}
               style={{ width:'100%', padding:'11px', borderRadius:11, border:'none', background:`linear-gradient(135deg,${C.gold},${C.goldL}80)`, color:'#1a1000', fontSize:13, cursor:'pointer', fontWeight:800 }}>
               Fechar
@@ -240,8 +287,247 @@ function NovoClienteModal({ onClose, onCreated }) {
   )
 }
 
-// ─── INSTAGRAM DIRECT MIRROR ──────────────────────────────────────────────────
-function IGDirectMirror({ tenantId }) {
+// ─── WHATSAPP PANEL (split view) ──────────────────────────────────────────────
+function WhatsAppPanel({ tenantId, convos: initialConvos }) {
+  const [convos,       setConvos]       = useState(initialConvos || [])
+  const [selectedConv, setSelectedConv] = useState(null)
+  const [messages,     setMessages]     = useState([])
+  const [loadingMsgs,  setLoadingMsgs]  = useState(false)
+  const [reply,        setReply]        = useState('')
+  const [sending,      setSending]      = useState(false)
+  const [sendErr,      setSendErr]      = useState(null)
+  const msgEndRef = useRef(null)
+
+  // Sync convos from parent
+  useEffect(() => {
+    const waConvos = (initialConvos || []).filter(c => (c.channel || 'whatsapp') === 'whatsapp')
+    setConvos(waConvos)
+    // Auto-select first conversation
+    if (waConvos.length && !selectedConv) {
+      setSelectedConv(waConvos[0].id)
+    }
+  }, [initialConvos])
+
+  // Poll fresh conversations from inbox
+  useEffect(() => {
+    if (!tenantId) return
+    const poll = async () => {
+      try {
+        const r = await fetch(`/api/caro-admin/inbox?tenant_id=${encodeURIComponent(tenantId)}`)
+        const d = await r.json()
+        const wa = (d.conversations || []).filter(c => (c.channel || 'whatsapp') === 'whatsapp')
+        setConvos(wa)
+        if (wa.length && !selectedConv) setSelectedConv(wa[0].id)
+      } catch {}
+    }
+    poll()
+    const t = setInterval(poll, 15000)
+    return () => clearInterval(t)
+  }, [tenantId])
+
+  // Fetch messages when conv selected
+  const fetchMsgs = useCallback(async (convId) => {
+    if (!convId) return
+    setLoadingMsgs(true)
+    try {
+      const r = await fetch(`/api/caro-admin/messages?conv_id=${encodeURIComponent(convId)}`)
+      const d = await r.json()
+      setMessages(d.messages || [])
+    } catch {}
+    setLoadingMsgs(false)
+  }, [])
+
+  useEffect(() => {
+    if (!selectedConv) return
+    fetchMsgs(selectedConv)
+    const t = setInterval(() => fetchMsgs(selectedConv), 8000)
+    return () => clearInterval(t)
+  }, [selectedConv, fetchMsgs])
+
+  useEffect(() => {
+    msgEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  const sendReply = async () => {
+    if (!reply.trim() || !selectedConv || sending) return
+    setSending(true)
+    setSendErr(null)
+    try {
+      const r = await fetch('/api/caro-admin/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conv_id: selectedConv, content: reply.trim(), direction: 'outbound' }),
+      })
+      const d = await r.json()
+      if (!r.ok) {
+        setSendErr(d.error || 'Erro ao enviar')
+      } else {
+        setReply('')
+        await fetchMsgs(selectedConv)
+      }
+    } catch (e) {
+      setSendErr(e.message)
+    }
+    setSending(false)
+  }
+
+  const selectedConvData = convos.find(c => c.id === selectedConv)
+
+  return (
+    <div style={{ display:'flex', flexDirection:'column', height:'100%', background:C.surf, border:`1px solid ${C.border}`, borderRadius:16, overflow:'hidden' }}>
+      {/* Header */}
+      <div style={{ padding:'10px 14px', borderBottom:`1px solid ${C.border}`, background:C.surf2, flexShrink:0 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <div style={{ width:32, height:32, borderRadius:'50%', background:'linear-gradient(135deg,#25D366,#128C7E)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>💬</div>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:13, fontWeight:700, color:C.text }}>WhatsApp</div>
+            <div style={{ fontSize:10, color:C.muted, display:'flex', alignItems:'center', gap:4 }}>
+              <Dot color={C.green} size={5} glow/>
+              <span>Ao vivo · {convos.length} conversa{convos.length !== 1 ? 's' : ''}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Conversation list — horizontal strip */}
+      {convos.length > 0 && (
+        <div style={{ padding:'8px 10px', borderBottom:`1px solid ${C.border}`, background:C.surf2, flexShrink:0, overflowX:'auto', display:'flex', gap:6, scrollbarWidth:'none' }}>
+          {convos.map(c => {
+            const name = c.customer_name || c.customer_phone || 'Desconhecido'
+            const init = name.slice(0,2).toUpperCase()
+            const isSelected = c.id === selectedConv
+            const hasUnread = (c.unread_count || 0) > 0
+            return (
+              <div key={c.id} onClick={() => setSelectedConv(c.id)}
+                style={{
+                  display:'flex', flexDirection:'column', alignItems:'center', gap:4,
+                  padding:'6px 8px', borderRadius:10, cursor:'pointer', flexShrink:0,
+                  background: isSelected ? `#25D36622` : 'transparent',
+                  border: `1px solid ${isSelected ? '#25D366' : 'transparent'}`,
+                  transition:'all .15s', position:'relative',
+                }}>
+                <div style={{
+                  width:36, height:36, borderRadius:'50%',
+                  background:'linear-gradient(135deg,#25D366,#128C7E)',
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  fontSize:11, fontWeight:800, color:'#fff',
+                }}>
+                  {init}
+                </div>
+                {hasUnread && (
+                  <div style={{
+                    position:'absolute', top:4, right:4,
+                    width:12, height:12, borderRadius:'50%',
+                    background:C.red, border:`2px solid ${C.surf2}`,
+                  }}/>
+                )}
+                <div style={{ fontSize:9, color: isSelected ? '#25D366' : C.muted, fontWeight:600, whiteSpace:'nowrap', maxWidth:52, overflow:'hidden', textOverflow:'ellipsis' }}>
+                  {name.split(' ')[0]}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Messages + empty state */}
+      <div style={{ flex:1, overflowY:'auto', padding:'12px 14px', display:'flex', flexDirection:'column', gap:8, minHeight:200 }}>
+        {!selectedConv || convos.length === 0 ? (
+          <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', color:C.muted }}>
+            <div style={{ fontSize:28, marginBottom:8, opacity:0.3 }}>💬</div>
+            <div style={{ fontSize:13, fontWeight:600, color:C.mutedL }}>Nenhuma conversa WhatsApp</div>
+            <div style={{ fontSize:11, marginTop:4, textAlign:'center' }}>As mensagens recebidas aparecem aqui</div>
+          </div>
+        ) : loadingMsgs && messages.length === 0 ? (
+          <div style={{ textAlign:'center', color:C.muted, paddingTop:20, fontSize:13 }}>Carregando mensagens...</div>
+        ) : messages.length === 0 ? (
+          <div style={{ textAlign:'center', color:C.muted, paddingTop:20, fontSize:13 }}>Nenhuma mensagem nesta conversa</div>
+        ) : (
+          <>
+            {/* Selected conv header */}
+            {selectedConvData && (
+              <div style={{ fontSize:11, color:C.muted, textAlign:'center', marginBottom:4 }}>
+                {selectedConvData.customer_name || selectedConvData.customer_phone} · {selectedConvData.message_count || messages.length} msg
+                {selectedConvData.ai_enabled
+                  ? <span style={{ marginLeft:6, color:C.green }}>· IA Ativa</span>
+                  : <span style={{ marginLeft:6, color:C.orange }}>· IA Pausada</span>
+                }
+              </div>
+            )}
+            {messages.map(msg => {
+              const isOut = msg.direction === 'outbound'
+              return (
+                <div key={msg.id} style={{ display:'flex', justifyContent: isOut ? 'flex-end' : 'flex-start' }}>
+                  {msg.content_type === 'image' && msg.media_url ? (
+                    <div style={{
+                      maxWidth:'75%', borderRadius: isOut ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
+                      overflow:'hidden', boxShadow:'0 1px 6px rgba(0,0,0,.3)',
+                    }}>
+                      <img src={msg.media_url} alt="imagem" style={{ display:'block', maxWidth:'100%', maxHeight:200, objectFit:'cover' }}/>
+                      <div style={{
+                        padding:'4px 10px 6px', background: isOut ? '#25D366' : C.surf3,
+                        fontSize:9, color: isOut ? '#00400028' : C.muted, textAlign: isOut ? 'right' : 'left',
+                      }}>
+                        {fmtTime(msg.created_at)}
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{
+                      maxWidth:'78%', padding:'8px 12px',
+                      borderRadius: isOut ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                      background: isOut ? '#25D366' : C.surf3,
+                      color: isOut ? '#fff' : C.text,
+                    }}>
+                      <div style={{ fontSize:12, lineHeight:1.5, wordBreak:'break-word' }}>{msg.content}</div>
+                      <div style={{ fontSize:9, opacity:0.7, marginTop:3, textAlign: isOut ? 'right' : 'left' }}>
+                        {isOut ? '✓✓ IA' : '📩'} · {fmtTime(msg.created_at)}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+            <div ref={msgEndRef}/>
+          </>
+        )}
+      </div>
+
+      {/* Send bar */}
+      {selectedConv && (
+        <div style={{ padding:'8px 10px', borderTop:`1px solid ${C.border}`, background:C.surf2, flexShrink:0 }}>
+          {sendErr && (
+            <div style={{ fontSize:10, color:C.red, marginBottom:5, padding:'3px 8px', background:`${C.red}15`, borderRadius:6 }}>{sendErr}</div>
+          )}
+          <div style={{ display:'flex', gap:6 }}>
+            <input
+              value={reply}
+              onChange={e => setReply(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply() } }}
+              placeholder="Responder via WhatsApp..."
+              style={{
+                flex:1, padding:'9px 12px', borderRadius:20, border:`1px solid ${C.borderL}`,
+                background:C.surf3, color:C.text, fontSize:12, outline:'none',
+              }}
+            />
+            <button onClick={sendReply} disabled={sending || !reply.trim()}
+              style={{
+                padding:'9px 16px', borderRadius:20, border:'none', fontWeight:700, fontSize:12,
+                cursor: (sending || !reply.trim()) ? 'default' : 'pointer',
+                background: (sending || !reply.trim()) ? C.surf3 : 'linear-gradient(135deg,#25D366,#128C7E)',
+                color: (sending || !reply.trim()) ? C.muted : '#fff',
+                transition:'all .15s', flexShrink:0,
+              }}>
+              {sending ? '...' : '↑'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── INSTAGRAM DIRECT PANEL (split view) ─────────────────────────────────────
+function IGPanel({ tenantId }) {
   const [convList,     setConvList]     = useState([])
   const [selectedConv, setSelectedConv] = useState(null)
   const [messages,     setMessages]     = useState([])
@@ -257,10 +543,13 @@ function IGDirectMirror({ tenantId }) {
     try {
       const r = await fetch(`/api/caro-admin/instagram?tenant_id=${encodeURIComponent(tenantId)}`)
       const d = await r.json()
-      setConvList(d.conversations || [])
+      const convs = d.conversations || []
+      setConvList(convs)
+      // Auto-select first
+      if (convs.length && !selectedConv) setSelectedConv(convs[0].id)
     } catch {}
     setLoadingList(false)
-  }, [tenantId])
+  }, [tenantId, selectedConv])
 
   const fetchMsgs = useCallback(async (convId) => {
     if (!convId) return
@@ -275,14 +564,14 @@ function IGDirectMirror({ tenantId }) {
 
   useEffect(() => {
     fetchConvs()
-    intervalRef.current = setInterval(fetchConvs, 3000)
+    intervalRef.current = setInterval(fetchConvs, 5000)
     return () => clearInterval(intervalRef.current)
   }, [fetchConvs])
 
   useEffect(() => {
     if (!selectedConv) return
     fetchMsgs(selectedConv)
-    const t = setInterval(() => fetchMsgs(selectedConv), 3000)
+    const t = setInterval(() => fetchMsgs(selectedConv), 5000)
     return () => clearInterval(t)
   }, [selectedConv, fetchMsgs])
 
@@ -313,197 +602,167 @@ function IGDirectMirror({ tenantId }) {
     setSending(false)
   }
 
-  const fmtTime = (ts) => {
-    if (!ts) return ''
-    const d = new Date(ts)
-    const now = new Date()
-    const diff = now - d
-    if (diff < 60000)    return 'agora'
-    if (diff < 3600000)  return `${Math.floor(diff/60000)}min`
-    if (diff < 86400000) return d.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' })
-    return d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' })
-  }
-
   const displayName = (c) => {
     if (c.sender_name && c.sender_name !== c.sender_id) return c.sender_name
     const raw = c.ig_sender_id || c.sender_id || ''
     return raw.startsWith('ig_') ? `@${raw.slice(3)}` : raw || 'Usuário'
   }
 
-  if (loadingList) {
-    return (
-      <div style={{ padding:60, textAlign:'center', color:C.muted }}>
-        <div style={{ fontSize:28, marginBottom:10 }}>📸</div>
-        <div style={{ fontSize:13 }}>Carregando Direct...</div>
-      </div>
-    )
-  }
+  const selectedConvData = convList.find(c => c.id === selectedConv)
 
   return (
-    <div style={{ display:'flex', gap:0, height:560, border:`1px solid ${C.border}`, borderRadius:16, overflow:'hidden' }}>
-
-      {/* ── Lista de conversas (esquerda) ── */}
-      <div style={{ width:280, borderRight:`1px solid ${C.border}`, display:'flex', flexDirection:'column', flexShrink:0 }}>
-        <div style={{ padding:'12px 14px', borderBottom:`1px solid ${C.border}`, background:C.surf2 }}>
-          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-            <span style={{ fontSize:16 }}>📸</span>
-            <div>
-              <div style={{ fontSize:13, fontWeight:700, color:C.text }}>Instagram Direct</div>
-              <div style={{ fontSize:10, color:C.muted, display:'flex', alignItems:'center', gap:4 }}>
-                <Dot color={C.green} size={5} glow/>
-                <span>Ao vivo · atualiza a cada 3s</span>
-              </div>
+    <div style={{ display:'flex', flexDirection:'column', height:'100%', background:C.surf, border:`1px solid ${C.border}`, borderRadius:16, overflow:'hidden' }}>
+      {/* Header */}
+      <div style={{ padding:'10px 14px', borderBottom:`1px solid ${C.border}`, background:C.surf2, flexShrink:0 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+          <div style={{ width:32, height:32, borderRadius:'50%', background:'linear-gradient(135deg,#E1306C,#833AB4,#F77737)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16 }}>📸</div>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:13, fontWeight:700, color:C.text }}>Instagram Direct</div>
+            <div style={{ fontSize:10, color:C.muted, display:'flex', alignItems:'center', gap:4 }}>
+              <Dot color='#E1306C' size={5} glow/>
+              <span>Ao vivo · atualiza a cada 5s</span>
             </div>
           </div>
         </div>
+      </div>
 
-        <div style={{ flex:1, overflowY:'auto' }}>
+      {/* Conversation list — horizontal strip */}
+      {loadingList && convList.length === 0 ? null : (
+        <div style={{ padding:'8px 10px', borderBottom:`1px solid ${C.border}`, background:C.surf2, flexShrink:0, overflowX:'auto', display:'flex', gap:6, scrollbarWidth:'none' }}>
           {convList.length === 0 ? (
-            <div style={{ padding:'40px 16px', textAlign:'center', color:C.muted }}>
-              <div style={{ fontSize:24, marginBottom:8, opacity:0.5 }}>📬</div>
-              <div style={{ fontSize:12 }}>Nenhuma conversa via Instagram ainda.</div>
-              <div style={{ fontSize:11, marginTop:4, color:C.muted }}>Mensagens recebidas aparecem aqui em tempo real.</div>
-            </div>
-          ) : convList.map(conv => {
-            const isSelected = selectedConv === conv.id
-            const name = displayName(conv)
-            const initials = name.replace('@','').slice(0,2).toUpperCase()
-            const hasUnread = (conv.unread_count || 0) > 0
-
+            <div style={{ fontSize:11, color:C.muted, padding:'4px 0' }}>Nenhuma conversa via Direct ainda</div>
+          ) : convList.map(c => {
+            const name = displayName(c)
+            const init = name.replace('@','').slice(0,2).toUpperCase()
+            const isSelected = c.id === selectedConv
+            const hasUnread = (c.unread_count || 0) > 0
             return (
-              <div key={conv.id}
-                onClick={() => setSelectedConv(conv.id)}
+              <div key={c.id} onClick={() => setSelectedConv(c.id)}
                 style={{
-                  padding:'11px 14px', cursor:'pointer', transition:'background .15s',
-                  background: isSelected ? `${C.pink}18` : 'transparent',
-                  borderBottom:`1px solid ${C.border}`,
-                  borderLeft: isSelected ? `3px solid ${C.pink}` : '3px solid transparent',
+                  display:'flex', flexDirection:'column', alignItems:'center', gap:4,
+                  padding:'6px 8px', borderRadius:10, cursor:'pointer', flexShrink:0,
+                  background: isSelected ? '#E1306C22' : 'transparent',
+                  border: `1px solid ${isSelected ? '#E1306C' : 'transparent'}`,
+                  transition:'all .15s', position:'relative',
                 }}>
-                <div style={{ display:'flex', gap:10, alignItems:'flex-start' }}>
-                  <div style={{ width:38, height:38, borderRadius:'50%', background:`linear-gradient(135deg,#E1306C,#833AB4,#F77737)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:800, color:'#fff', flexShrink:0 }}>
-                    {initials}
-                  </div>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:2 }}>
-                      <span style={{ fontSize:13, fontWeight: hasUnread ? 800 : 600, color: hasUnread ? C.text : C.mutedL, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:130 }}>
-                        {name}
-                      </span>
-                      <span style={{ fontSize:10, color:C.muted, flexShrink:0 }}>{fmtTime(conv.last_at)}</span>
-                    </div>
-                    <div style={{ fontSize:11, color: hasUnread ? C.mutedL : C.muted, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                      {conv.last_direction === 'outbound' ? '✓ ' : ''}{conv.last_message || 'Sem mensagens'}
-                    </div>
-                    {hasUnread && (
-                      <div style={{ marginTop:4 }}>
-                        <span style={{ fontSize:10, padding:'1px 7px', borderRadius:10, background:`${C.pink}44`, color:C.pink, fontWeight:700 }}>
-                          {conv.unread_count} nova{conv.unread_count > 1 ? 's' : ''}
-                        </span>
-                      </div>
-                    )}
-                  </div>
+                <div style={{
+                  width:36, height:36, borderRadius:'50%',
+                  background:'linear-gradient(135deg,#E1306C,#833AB4,#F77737)',
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  fontSize:11, fontWeight:800, color:'#fff',
+                }}>
+                  {init}
+                </div>
+                {hasUnread && (
+                  <div style={{
+                    position:'absolute', top:4, right:4,
+                    width:12, height:12, borderRadius:'50%',
+                    background:C.red, border:`2px solid ${C.surf2}`,
+                  }}/>
+                )}
+                <div style={{ fontSize:9, color: isSelected ? '#E1306C' : C.muted, fontWeight:600, whiteSpace:'nowrap', maxWidth:52, overflow:'hidden', textOverflow:'ellipsis' }}>
+                  {name.replace('@','').split('_')[0]}
                 </div>
               </div>
             )
           })}
         </div>
-      </div>
+      )}
 
-      {/* ── Mensagens (direita) ── */}
-      <div style={{ flex:1, display:'flex', flexDirection:'column', background:C.surf }}>
-        {!selectedConv ? (
+      {/* Messages */}
+      <div style={{ flex:1, overflowY:'auto', padding:'12px 14px', display:'flex', flexDirection:'column', gap:8, minHeight:200 }}>
+        {!selectedConv || convList.length === 0 ? (
           <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', color:C.muted }}>
-            <div style={{ fontSize:36, marginBottom:12, opacity:0.3 }}>💬</div>
-            <div style={{ fontSize:14, fontWeight:600, color:C.mutedL }}>Selecione uma conversa</div>
-            <div style={{ fontSize:12, marginTop:4 }}>Clique em um Direct para ver as mensagens</div>
+            <div style={{ fontSize:28, marginBottom:8, opacity:0.3 }}>📸</div>
+            <div style={{ fontSize:13, fontWeight:600, color:C.mutedL }}>
+              {loadingList ? 'Carregando...' : 'Nenhuma conversa'}
+            </div>
+            <div style={{ fontSize:11, marginTop:4 }}>Direct aparece aqui em tempo real</div>
           </div>
+        ) : loadingMsgs && messages.length === 0 ? (
+          <div style={{ textAlign:'center', color:C.muted, paddingTop:20, fontSize:13 }}>Carregando mensagens...</div>
+        ) : messages.length === 0 ? (
+          <div style={{ textAlign:'center', color:C.muted, paddingTop:20, fontSize:13 }}>Nenhuma mensagem ainda</div>
         ) : (
           <>
-            {/* Header */}
-            {(() => {
-              const conv = convList.find(c => c.id === selectedConv)
-              if (!conv) return null
-              const name = displayName(conv)
-              const initials = name.replace('@','').slice(0,2).toUpperCase()
+            {selectedConvData && (
+              <div style={{ fontSize:11, color:C.muted, textAlign:'center', marginBottom:4 }}>
+                {displayName(selectedConvData)} · {selectedConvData.message_count || messages.length} msg
+                {selectedConvData.ai_enabled
+                  ? <span style={{ marginLeft:6, color:C.green }}>· IA Ativa</span>
+                  : <span style={{ marginLeft:6, color:C.orange }}>· IA Pausada</span>
+                }
+              </div>
+            )}
+            {messages.map(msg => {
+              const isOut = msg.direction === 'outbound'
               return (
-                <div style={{ padding:'12px 16px', borderBottom:`1px solid ${C.border}`, background:C.surf2, display:'flex', alignItems:'center', gap:10 }}>
-                  <div style={{ width:36, height:36, borderRadius:'50%', background:`linear-gradient(135deg,#E1306C,#833AB4,#F77737)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:800, color:'#fff' }}>
-                    {initials}
-                  </div>
-                  <div style={{ flex:1 }}>
-                    <div style={{ fontSize:14, fontWeight:700, color:C.text }}>{name}</div>
-                    <div style={{ fontSize:10, color:C.muted }}>
-                      Instagram Direct · {conv.message_count || 0} mensagens
-                      {conv.ai_enabled ? <span style={{ marginLeft:8, color:C.green }}>· IA Ativa</span> : <span style={{ marginLeft:8, color:C.orange }}>· IA Pausada</span>}
-                    </div>
-                  </div>
-                  <StageChip stage={conv.lead_stage}/>
-                </div>
-              )
-            })()}
-
-            {/* Mensagens */}
-            <div style={{ flex:1, overflowY:'auto', padding:'16px 14px', display:'flex', flexDirection:'column', gap:8 }}>
-              {loadingMsgs ? (
-                <div style={{ textAlign:'center', color:C.muted, paddingTop:40 }}>Carregando mensagens...</div>
-              ) : messages.length === 0 ? (
-                <div style={{ textAlign:'center', color:C.muted, paddingTop:40 }}>Nenhuma mensagem ainda</div>
-              ) : messages.map(msg => {
-                const isOut = msg.direction === 'outbound'
-                return (
-                  <div key={msg.id} style={{ display:'flex', justifyContent: isOut ? 'flex-end' : 'flex-start' }}>
+                <div key={msg.id} style={{ display:'flex', justifyContent: isOut ? 'flex-end' : 'flex-start' }}>
+                  {msg.content_type === 'image' && msg.media_url ? (
                     <div style={{
-                      maxWidth:'72%', padding:'9px 13px', borderRadius: isOut ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                      background: isOut
-                        ? `linear-gradient(135deg,#E1306C,#833AB4)`
-                        : C.surf3,
+                      maxWidth:'75%', borderRadius: isOut ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
+                      overflow:'hidden', boxShadow:'0 1px 6px rgba(0,0,0,.3)',
+                    }}>
+                      <img src={msg.media_url} alt="imagem" style={{ display:'block', maxWidth:'100%', maxHeight:200, objectFit:'cover' }}/>
+                      <div style={{
+                        padding:'4px 10px 6px',
+                        background: isOut ? 'linear-gradient(135deg,#E1306C,#833AB4)' : C.surf3,
+                        fontSize:9, color:'rgba(255,255,255,0.6)', textAlign:'right',
+                      }}>
+                        {fmtTime(msg.created_at)}
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{
+                      maxWidth:'78%', padding:'8px 12px',
+                      borderRadius: isOut ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                      background: isOut ? 'linear-gradient(135deg,#E1306C,#833AB4)' : C.surf3,
                       color: isOut ? '#fff' : C.text,
                     }}>
-                      <div style={{ fontSize:13, lineHeight:1.45, wordBreak:'break-word' }}>{msg.content}</div>
-                      <div style={{ fontSize:10, opacity:0.6, marginTop:4, textAlign: isOut ? 'right' : 'left' }}>
+                      <div style={{ fontSize:12, lineHeight:1.5, wordBreak:'break-word' }}>{msg.content}</div>
+                      <div style={{ fontSize:9, opacity:0.65, marginTop:3, textAlign: isOut ? 'right' : 'left' }}>
                         {isOut ? '✓ IA' : '📩'} · {fmtTime(msg.created_at)}
                       </div>
                     </div>
-                  </div>
-                )
-              })}
-              <div ref={msgEndRef}/>
-            </div>
-
-            {/* Input de resposta */}
-            <div style={{ padding:'10px 14px', borderTop:`1px solid ${C.border}`, background:C.surf2 }}>
-              {sendErr && (
-                <div style={{ fontSize:11, color:C.red, marginBottom:6, padding:'4px 8px', background:`${C.red}15`, borderRadius:6 }}>
-                  {sendErr}
+                  )}
                 </div>
-              )}
-              <div style={{ display:'flex', gap:8 }}>
-                <input
-                  value={reply}
-                  onChange={e => setReply(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply() } }}
-                  placeholder="Responder via Instagram Direct..."
-                  style={{
-                    flex:1, padding:'10px 14px', borderRadius:22, border:`1px solid ${C.borderL}`,
-                    background:C.surf3, color:C.text, fontSize:13, outline:'none',
-                  }}
-                />
-                <button onClick={sendReply} disabled={sending || !reply.trim()}
-                  style={{
-                    padding:'10px 18px', borderRadius:22, border:'none', fontWeight:700, fontSize:13, cursor: (sending || !reply.trim()) ? 'default' : 'pointer',
-                    background: (sending || !reply.trim()) ? C.surf3 : `linear-gradient(135deg,#E1306C,#833AB4)`,
-                    color: (sending || !reply.trim()) ? C.muted : '#fff',
-                    transition:'all .15s',
-                  }}>
-                  {sending ? '...' : 'Enviar'}
-                </button>
-              </div>
-              <div style={{ fontSize:10, color:C.muted, marginTop:6, textAlign:'center' }}>
-                Esta mensagem será enviada como resposta manual da IA
-              </div>
-            </div>
+              )
+            })}
+            <div ref={msgEndRef}/>
           </>
         )}
       </div>
+
+      {/* Send bar */}
+      {selectedConv && (
+        <div style={{ padding:'8px 10px', borderTop:`1px solid ${C.border}`, background:C.surf2, flexShrink:0 }}>
+          {sendErr && (
+            <div style={{ fontSize:10, color:C.red, marginBottom:5, padding:'3px 8px', background:`${C.red}15`, borderRadius:6 }}>{sendErr}</div>
+          )}
+          <div style={{ display:'flex', gap:6 }}>
+            <input
+              value={reply}
+              onChange={e => setReply(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply() } }}
+              placeholder="Responder via Direct..."
+              style={{
+                flex:1, padding:'9px 12px', borderRadius:20, border:`1px solid ${C.borderL}`,
+                background:C.surf3, color:C.text, fontSize:12, outline:'none',
+              }}
+            />
+            <button onClick={sendReply} disabled={sending || !reply.trim()}
+              style={{
+                padding:'9px 16px', borderRadius:20, border:'none', fontWeight:700, fontSize:12,
+                cursor: (sending || !reply.trim()) ? 'default' : 'pointer',
+                background: (sending || !reply.trim()) ? C.surf3 : 'linear-gradient(135deg,#E1306C,#833AB4)',
+                color: (sending || !reply.trim()) ? C.muted : '#fff',
+                transition:'all .15s', flexShrink:0,
+              }}>
+              {sending ? '...' : '↑'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -544,7 +803,7 @@ function KnowledgeBase({ tenantId }) {
       const r = await fetch('/api/caro-admin/knowledge/upload', { method: 'POST', body: fd })
       const d = await r.json()
       if (d.ok) {
-        setUploadMsg({ type: 'success', text: `✓ "${file.name}" importado — ${d.pages || 0} página(s) · ${(d.chars || 0).toLocaleString('pt-BR')} caracteres` })
+        setUploadMsg({ type: 'success', text: `✓ "${file.name}" importado — ${d.pages || 0} pág · ${(d.chars || 0).toLocaleString('pt-BR')} chars` })
         await fetchDocs()
       } else {
         setUploadMsg({ type: 'error', text: d.error || 'Erro ao processar PDF' })
@@ -572,62 +831,60 @@ function KnowledgeBase({ tenantId }) {
         onDragLeave={() => setDragOver(false)}
         onDrop={e => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) upload(f) }}
         onClick={() => !uploading && fileRef.current?.click()}
-        style={{ border:`2px dashed ${dragOver ? C.gold : C.borderL}`, borderRadius:16, padding:'36px 24px', textAlign:'center', cursor: uploading ? 'default' : 'pointer', background: dragOver ? `${C.gold}08` : C.surf2, transition:'all .2s', marginBottom:16, position:'relative' }}>
+        style={{ border:`2px dashed ${dragOver ? C.gold : C.borderL}`, borderRadius:16, padding:'28px 24px', textAlign:'center', cursor: uploading ? 'default' : 'pointer', background: dragOver ? `${C.gold}08` : C.surf2, transition:'all .2s', marginBottom:14, position:'relative' }}>
         <input ref={fileRef} type="file" accept=".pdf,application/pdf" style={{ display:'none' }} onChange={e => e.target.files[0] && upload(e.target.files[0])}/>
-        <div style={{ fontSize:36, marginBottom:10, lineHeight:1 }}>📄</div>
-        <div style={{ fontSize:15, fontWeight:700, color: uploading ? C.muted : C.text, marginBottom:5 }}>
-          {uploading ? 'Processando PDF...' : dragOver ? 'Solte para importar' : 'Arraste um PDF ou clique para selecionar'}
+        <div style={{ fontSize:28, marginBottom:8, lineHeight:1 }}>📄</div>
+        <div style={{ fontSize:14, fontWeight:700, color: uploading ? C.muted : C.text, marginBottom:4 }}>
+          {uploading ? 'Processando PDF...' : dragOver ? 'Solte para importar' : 'Arraste PDF ou clique para selecionar'}
         </div>
-        <div style={{ fontSize:12, color:C.muted }}>O texto será extraído automaticamente e usado como contexto da IA</div>
+        <div style={{ fontSize:12, color:C.muted }}>O texto é extraído e usado como contexto da IA</div>
       </div>
 
       {uploadMsg && (
-        <div style={{ padding:'11px 16px', borderRadius:11, marginBottom:16, background: uploadMsg.type === 'success' ? `${C.green}18` : `${C.red}18`, border:`1px solid ${uploadMsg.type === 'success' ? C.green : C.red}55`, fontSize:13, color: uploadMsg.type === 'success' ? C.green : C.red, display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
+        <div style={{ padding:'10px 14px', borderRadius:10, marginBottom:12, background: uploadMsg.type === 'success' ? `${C.green}18` : `${C.red}18`, border:`1px solid ${uploadMsg.type === 'success' ? C.green : C.red}55`, fontSize:12, color: uploadMsg.type === 'success' ? C.green : C.red, display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
           <span>{uploadMsg.text}</span>
           <button onClick={() => setUploadMsg(null)} style={{ background:'none', border:'none', color:'inherit', cursor:'pointer', fontSize:16, opacity:0.6 }}>×</button>
         </div>
       )}
 
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
-        <div style={{ fontSize:12, color:C.muted, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.06em' }}>
-          {loading ? 'Carregando...' : `${docs.length} documento${docs.length !== 1 ? 's' : ''} na base`}
+        <div style={{ fontSize:11, color:C.muted, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.06em' }}>
+          {loading ? 'Carregando...' : `${docs.length} documento${docs.length !== 1 ? 's' : ''}`}
         </div>
-        {docs.length > 0 && <div style={{ fontSize:11, color:C.muted }}>{docs.reduce((a,d) => a+(d.chars||0), 0).toLocaleString('pt-BR')} chars</div>}
+        {docs.length > 0 && <div style={{ fontSize:11, color:C.muted }}>{docs.reduce((a,d) => a+(d.chars||0), 0).toLocaleString('pt-BR')} chars total</div>}
       </div>
 
       {!loading && docs.length === 0 && (
-        <div style={{ padding:'50px 24px', textAlign:'center', color:C.muted, background:C.surf, borderRadius:14, border:`1px dashed ${C.border}` }}>
-          <div style={{ fontSize:28, marginBottom:8, opacity:0.4 }}>📚</div>
-          <div style={{ fontSize:13 }}>Nenhum documento ainda. Suba um PDF para treinar a IA.</div>
+        <div style={{ padding:'40px 24px', textAlign:'center', color:C.muted, background:C.surf, borderRadius:14, border:`1px dashed ${C.border}` }}>
+          <div style={{ fontSize:24, marginBottom:8, opacity:0.4 }}>📚</div>
+          <div style={{ fontSize:13 }}>Nenhum documento. Suba um PDF para treinar a IA.</div>
         </div>
       )}
 
-      <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+      <div style={{ display:'flex', flexDirection:'column', gap:7 }}>
         {docs.map(doc => (
-          <div key={doc.id} style={{ background:C.surf, border:`1px solid ${C.border}`, borderRadius:12, overflow:'hidden', transition:'border-color .15s' }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = C.borderL}
-            onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
-            <div style={{ padding:'12px 16px', display:'flex', alignItems:'center', gap:12 }}>
-              <div style={{ width:40, height:40, borderRadius:10, background:`${C.gold}22`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>📄</div>
+          <div key={doc.id} style={{ background:C.surf, border:`1px solid ${C.border}`, borderRadius:11, overflow:'hidden' }}>
+            <div style={{ padding:'10px 14px', display:'flex', alignItems:'center', gap:10 }}>
+              <div style={{ width:36, height:36, borderRadius:9, background:`${C.gold}22`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, flexShrink:0 }}>📄</div>
               <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontSize:13, fontWeight:600, color:C.text, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{doc.filename}</div>
-                <div style={{ fontSize:11, color:C.muted, marginTop:2 }}>
-                  {(doc.chars||0).toLocaleString('pt-BR')} chars · {Math.round((doc.size_bytes||0)/1024)} KB · {new Date(doc.created_at).toLocaleDateString('pt-BR')}
+                <div style={{ fontSize:12, fontWeight:600, color:C.text, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{doc.filename}</div>
+                <div style={{ fontSize:10, color:C.muted, marginTop:2 }}>
+                  {(doc.chars||0).toLocaleString('pt-BR')} chars · {Math.round((doc.size_bytes||0)/1024)} KB
                 </div>
               </div>
-              <div style={{ display:'flex', gap:6, flexShrink:0 }}>
-                <button onClick={() => setExpandedId(expandedId === doc.id ? null : doc.id)} style={{ padding:'5px 11px', borderRadius:8, border:`1px solid ${C.borderL}`, background:'transparent', color:C.mutedL, fontSize:11, cursor:'pointer', fontWeight:600 }}>
-                  {expandedId === doc.id ? 'Ocultar' : 'Preview'}
+              <div style={{ display:'flex', gap:5, flexShrink:0 }}>
+                <button onClick={() => setExpandedId(expandedId === doc.id ? null : doc.id)} style={{ padding:'4px 10px', borderRadius:7, border:`1px solid ${C.borderL}`, background:'transparent', color:C.mutedL, fontSize:10, cursor:'pointer', fontWeight:600 }}>
+                  {expandedId === doc.id ? 'Fechar' : 'Preview'}
                 </button>
-                <button onClick={() => del(doc.id, doc.filename)} style={{ padding:'5px 11px', borderRadius:8, border:`1px solid ${C.red}44`, background:'transparent', color:C.red, fontSize:11, cursor:'pointer', fontWeight:600 }}>
+                <button onClick={() => del(doc.id, doc.filename)} style={{ padding:'4px 10px', borderRadius:7, border:`1px solid ${C.red}44`, background:'transparent', color:C.red, fontSize:10, cursor:'pointer', fontWeight:600 }}>
                   Remover
                 </button>
               </div>
             </div>
             {expandedId === doc.id && (
-              <div style={{ padding:'12px 16px', borderTop:`1px solid ${C.border}`, background:C.surf2 }}>
-                <div style={{ fontSize:11, color:C.muted, fontWeight:600, marginBottom:6, textTransform:'uppercase', letterSpacing:'0.05em' }}>Preview</div>
-                <div style={{ fontSize:12, color:C.mutedL, lineHeight:1.7, whiteSpace:'pre-wrap', wordBreak:'break-word', maxHeight:180, overflowY:'auto' }}>
+              <div style={{ padding:'10px 14px', borderTop:`1px solid ${C.border}`, background:C.surf2 }}>
+                <div style={{ fontSize:10, color:C.muted, fontWeight:600, marginBottom:5, textTransform:'uppercase', letterSpacing:'0.05em' }}>Preview</div>
+                <div style={{ fontSize:11, color:C.mutedL, lineHeight:1.7, whiteSpace:'pre-wrap', wordBreak:'break-word', maxHeight:160, overflowY:'auto' }}>
                   {doc.preview || '(sem preview)'}
                 </div>
               </div>
@@ -639,54 +896,48 @@ function KnowledgeBase({ tenantId }) {
   )
 }
 
-// ─── DETALHE DO CLIENTE ───────────────────────────────────────────────────────
+// ─── DETALHE DO CLIENTE — SPLIT VIEW ─────────────────────────────────────────
 function ClienteDetail({ clientId, convos, onBack }) {
-  const [tab, setTab] = useState('whatsapp')
-  const meta      = getMeta(clientId)
-  const clConvos  = convos.filter(c => c.tenant_id === clientId)
-  const waConvos  = clConvos.filter(c => (c.channel || 'whatsapp') === 'whatsapp')
-  const igConvos  = clConvos.filter(c => c.channel === 'instagram')
-  const today     = new Date().toDateString()
+  const [showKB, setShowKB] = useState(false)
+  const meta = getMeta(clientId)
+  const clConvos = convos.filter(c => c.tenant_id === clientId)
+  const waConvos = clConvos.filter(c => (c.channel || 'whatsapp') === 'whatsapp')
+  const igConvos = clConvos.filter(c => c.channel === 'instagram')
+  const today    = new Date().toDateString()
   const todayCount = clConvos.filter(c => new Date(c.created_at || c.last_message_at || 0).toDateString() === today).length
-  const conv      = clConvos.filter(c => c.stage === 'converted').length
-  const convRate  = clConvos.length > 0 ? ((conv / clConvos.length) * 100).toFixed(0) : 0
-
-  const TABS = [
-    { id: 'whatsapp',   label: 'WhatsApp',             color: '#25D366', icon: '💬', count: waConvos.length },
-    { id: 'instagram',  label: 'Instagram Direct',      color: '#E1306C', icon: '📸', count: igConvos.length },
-    { id: 'knowledge',  label: 'Base de Conhecimento',  color: C.gold,    icon: '📚', count: null            },
-  ]
+  const conv  = clConvos.filter(c => c.stage === 'converted').length
+  const convRate = clConvos.length > 0 ? ((conv / clConvos.length) * 100).toFixed(0) : 0
 
   return (
     <div>
       <button onClick={onBack}
-        style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 14px', borderRadius:9, border:`1px solid ${C.border}`, background:'transparent', color:C.muted, fontSize:12, cursor:'pointer', marginBottom:20, fontWeight:600 }}
+        style={{ display:'flex', alignItems:'center', gap:6, padding:'6px 14px', borderRadius:9, border:`1px solid ${C.border}`, background:'transparent', color:C.muted, fontSize:12, cursor:'pointer', marginBottom:18, fontWeight:600 }}
         onMouseEnter={e => { e.currentTarget.style.color = C.text; e.currentTarget.style.borderColor = C.mutedL }}
         onMouseLeave={e => { e.currentTarget.style.color = C.muted; e.currentTarget.style.borderColor = C.border }}>
         ← Voltar para Clientes
       </button>
 
       {/* Header */}
-      <div style={{ display:'flex', alignItems:'center', gap:18, padding:'22px 24px', background:C.surf, border:`1px solid ${C.border}`, borderRadius:18, position:'relative', overflow:'hidden', marginBottom:22 }}>
+      <div style={{ display:'flex', alignItems:'center', gap:18, padding:'20px 22px', background:C.surf, border:`1px solid ${C.border}`, borderRadius:18, position:'relative', overflow:'hidden', marginBottom:18 }}>
         <div style={{ position:'absolute', top:0, left:0, right:0, height:3, background:`linear-gradient(90deg,${meta.color},${meta.color}55,transparent)` }}/>
-        <div style={{ width:64, height:64, borderRadius:'50%', background:`linear-gradient(135deg,${meta.color},${meta.color}66)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, fontWeight:900, color:'#fff', boxShadow:`0 0 0 4px ${meta.color}22`, flexShrink:0 }}>
+        <div style={{ width:60, height:60, borderRadius:'50%', background:`linear-gradient(135deg,${meta.color},${meta.color}66)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, fontWeight:900, color:'#fff', boxShadow:`0 0 0 4px ${meta.color}22`, flexShrink:0 }}>
           {meta.init}
         </div>
         <div style={{ flex:1 }}>
           <div style={{ fontSize:20, fontWeight:800, color:C.text, letterSpacing:'-0.3px' }}>{meta.name}</div>
           <div style={{ fontSize:13, color:C.muted, marginTop:2 }}>{meta.role}</div>
-          <div style={{ display:'flex', gap:6, marginTop:8, alignItems:'center' }}>
+          <div style={{ display:'flex', gap:6, marginTop:8, alignItems:'center', flexWrap:'wrap' }}>
             {meta.channels.includes('whatsapp') && (
-              <span style={{ fontSize:11, padding:'2px 9px', borderRadius:20, background:'#25D36622', color:'#25D366', fontWeight:700 }}>WhatsApp</span>
+              <span style={{ fontSize:11, padding:'2px 9px', borderRadius:20, background:'#25D36622', color:'#25D366', fontWeight:700 }}>💬 WhatsApp</span>
             )}
             {meta.channels.includes('instagram') && (
-              <span style={{ fontSize:11, padding:'2px 9px', borderRadius:20, background:'#E1306C22', color:'#E1306C', fontWeight:700 }}>Instagram</span>
+              <span style={{ fontSize:11, padding:'2px 9px', borderRadius:20, background:'#E1306C22', color:'#E1306C', fontWeight:700 }}>📸 Instagram</span>
             )}
             <Dot color={C.green} size={7} glow/>
             <span style={{ fontSize:11, color:C.green, fontWeight:600 }}>IA Ativa</span>
           </div>
         </div>
-        <div style={{ display:'flex', gap:18, marginRight:8 }}>
+        <div style={{ display:'flex', gap:16, marginRight:8 }}>
           {[
             { l:'Total',  v:clConvos.length,  c:C.text      },
             { l:'Hoje',   v:todayCount,         c:C.green    },
@@ -695,92 +946,53 @@ function ClienteDetail({ clientId, convos, onBack }) {
             { l:'Conv.',  v:`${convRate}%`,      c:C.gold    },
           ].map(s => (
             <div key={s.l} style={{ textAlign:'center' }}>
-              <div style={{ fontSize:22, fontWeight:900, color:s.c, lineHeight:1 }}>{s.v}</div>
+              <div style={{ fontSize:20, fontWeight:900, color:s.c, lineHeight:1 }}>{s.v}</div>
               <div style={{ fontSize:10, color:C.muted, marginTop:3 }}>{s.l}</div>
             </div>
           ))}
         </div>
         {meta.painel && (
           <a href={meta.painel}
-            style={{ padding:'9px 18px', borderRadius:11, background:`${meta.color}22`, color:meta.color, textDecoration:'none', fontSize:13, fontWeight:700, whiteSpace:'nowrap', border:`1px solid ${meta.color}44` }}>
+            style={{ padding:'9px 16px', borderRadius:11, background:`${meta.color}22`, color:meta.color, textDecoration:'none', fontSize:13, fontWeight:700, whiteSpace:'nowrap', border:`1px solid ${meta.color}44` }}>
             Ver Painel →
           </a>
         )}
       </div>
 
-      {/* Tabs */}
-      <div style={{ display:'flex', gap:2, marginBottom:20, borderBottom:`1px solid ${C.border}` }}>
-        {TABS.map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)}
-            style={{ padding:'10px 18px', border:'none', cursor:'pointer', fontSize:13, fontWeight: tab === t.id ? 700 : 500, background:'transparent', color: tab === t.id ? t.color : C.muted, borderBottom:`2px solid ${tab === t.id ? t.color : 'transparent'}`, display:'flex', alignItems:'center', gap:6, transition:'color .15s', borderRadius:'8px 8px 0 0' }}>
-            <span>{t.icon}</span>
-            <span>{t.label}</span>
-            {t.count !== null && (
-              <span style={{ fontSize:11, padding:'1px 7px', borderRadius:10, background: tab === t.id ? `${t.color}22` : C.surf2, color: t.count > 0 ? t.color : C.muted, fontWeight:700 }}>
-                {t.count}
-              </span>
-            )}
-          </button>
-        ))}
+      {/* ── SPLIT PANELS ─────────────────────────────────────────────────── */}
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginBottom:16 }}>
+        {/* WhatsApp */}
+        <div style={{ height:520 }}>
+          <WhatsAppPanel tenantId={clientId} convos={clConvos}/>
+        </div>
+
+        {/* Instagram Direct */}
+        <div style={{ height:520 }}>
+          <IGPanel tenantId={clientId}/>
+        </div>
       </div>
 
-      {/* WhatsApp tab */}
-      {tab === 'whatsapp' && (
-        <div>
-          <div style={{ fontSize:12, color:C.muted, marginBottom:14 }}>
-            {waConvos.length === 0 ? 'Nenhuma conversa via WhatsApp ainda' : `${waConvos.length} conversa${waConvos.length !== 1 ? 's' : ''} via WhatsApp`}
+      {/* ── KNOWLEDGE BASE (colapsável) ──────────────────────────────────── */}
+      <div style={{ background:C.surf, border:`1px solid ${C.border}`, borderRadius:16, overflow:'hidden' }}>
+        <button
+          onClick={() => setShowKB(p => !p)}
+          style={{
+            width:'100%', padding:'14px 20px', background:'transparent', border:'none',
+            display:'flex', alignItems:'center', gap:10, cursor:'pointer', borderBottom: showKB ? `1px solid ${C.border}` : 'none',
+          }}>
+          <span style={{ fontSize:16 }}>📚</span>
+          <div style={{ flex:1, textAlign:'left' }}>
+            <div style={{ fontSize:14, fontWeight:700, color:C.text }}>Base de Conhecimento</div>
+            <div style={{ fontSize:12, color:C.muted }}>PDFs usados pela IA como referência</div>
           </div>
-          {waConvos.length === 0 ? (
-            <div style={{ padding:'60px 24px', textAlign:'center', color:C.muted, background:C.surf, borderRadius:16, border:`1px solid ${C.border}` }}>
-              <div style={{ fontSize:36, marginBottom:10 }}>💬</div>
-              <div style={{ fontSize:14, fontWeight:600, color:C.mutedL, marginBottom:4 }}>Nenhuma conversa via WhatsApp</div>
-              <div style={{ fontSize:12 }}>As conversas aparecerão aqui assim que chegarem</div>
-            </div>
-          ) : (
-            <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-              {waConvos.map(c => {
-                const contact = c.customer_name || c.customer_phone || 'Desconhecido'
-                const time = c.last_message_at ? new Date(c.last_message_at).toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }) : ''
-                return (
-                  <div key={c.id} style={{ background:C.surf, border:`1px solid ${C.border}`, borderRadius:12, padding:'12px 16px', display:'flex', alignItems:'center', gap:12, transition:'border-color .15s' }}
-                    onMouseEnter={e => e.currentTarget.style.borderColor = '#25D366'}
-                    onMouseLeave={e => e.currentTarget.style.borderColor = C.border}>
-                    <div style={{ width:40, height:40, borderRadius:'50%', background:`linear-gradient(135deg,#25D366,#25D36655)`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, flexShrink:0 }}>💬</div>
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontSize:14, fontWeight:600, color:C.text, marginBottom:2 }}>{contact}</div>
-                      <div style={{ fontSize:12, color:C.muted, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
-                        {c.last_message || 'Sem mensagens recentes'}
-                      </div>
-                    </div>
-                    <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:5, flexShrink:0 }}>
-                      {c.unread_count > 0 && <span style={{ fontSize:10, padding:'2px 7px', borderRadius:10, background:`${C.green}44`, color:C.green, fontWeight:700 }}>{c.unread_count}</span>}
-                      {time && <span style={{ fontSize:10, color:C.muted }}>{time}</span>}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Instagram Direct tab — espelho em tempo real */}
-      {tab === 'instagram' && (
-        <IGDirectMirror tenantId={clientId}/>
-      )}
-
-      {/* Knowledge tab */}
-      {tab === 'knowledge' && (
-        <div>
-          <div style={{ marginBottom:20 }}>
-            <div style={{ fontSize:15, fontWeight:700, color:C.text }}>Base de Conhecimento</div>
-            <div style={{ fontSize:12, color:C.muted, marginTop:4, lineHeight:1.6 }}>
-              PDFs enviados aqui são usados pela IA como referência ao responder os clientes da <strong style={{ color:C.mutedL }}>{meta.name}</strong>.
-            </div>
+          <span style={{ color:C.muted, fontSize:18, transition:'transform .2s', transform: showKB ? 'rotate(180deg)' : 'none' }}>›</span>
+        </button>
+        {showKB && (
+          <div style={{ padding:'20px 22px' }}>
+            <KnowledgeBase tenantId={clientId}/>
           </div>
-          <KnowledgeBase tenantId={clientId}/>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
@@ -809,12 +1021,12 @@ function Overview({ clients, convos, loading, lastRefresh }) {
       </div>
 
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))', gap:12, marginBottom:22 }}>
-        <StatCard label="Clientes Ativos"     value={clients.length}            color={C.gold}        sub="na plataforma"/>
-        <StatCard label="Total de Conversas"  value={convos.length}             color={C.blue}        sub="todos os clientes"/>
-        <StatCard label="Hoje"                value={todayCount}                color={C.green}       sub="novas conversas"/>
-        <StatCard label="WhatsApp"            value={waCount}                   color='#25D366'       sub="conversas"/>
-        <StatCard label="Instagram"           value={igCount}                   color='#E1306C'       sub="conversas"/>
-        <StatCard label="Taxa de Conversão"   value={`${convRate}%`}            color={C.gold}        sub="geral"/>
+        <StatCard label="Clientes Ativos"     value={clients.length}     color={C.gold}    sub="na plataforma"/>
+        <StatCard label="Total de Conversas"  value={convos.length}      color={C.blue}    sub="todos os clientes"/>
+        <StatCard label="Hoje"                value={todayCount}          color={C.green}   sub="novas conversas"/>
+        <StatCard label="WhatsApp"            value={waCount}             color='#25D366'   sub="conversas"/>
+        <StatCard label="Instagram"           value={igCount}             color='#E1306C'   sub="conversas"/>
+        <StatCard label="Taxa de Conversão"   value={`${convRate}%`}      color={C.gold}    sub="geral"/>
       </div>
 
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:22 }}>
@@ -842,7 +1054,6 @@ function Overview({ clients, convos, loading, lastRefresh }) {
         </div>
       </div>
 
-      {/* Clientes */}
       <div style={{ background:C.surf, border:`1px solid ${C.border}`, borderRadius:14, padding:'20px 22px' }}>
         <div style={{ fontSize:14, fontWeight:700, color:C.text, marginBottom:16 }}>Clientes Ativos</div>
         <div style={{ display:'flex', flexDirection:'column', gap:11 }}>
@@ -892,7 +1103,7 @@ function Clientes({ clients, convos, onSelectClient, onNovoCliente }) {
 
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(320px,1fr))', gap:12 }}>
         {clients.map(cl => {
-          const meta    = getMeta(cl.id)
+          const meta     = getMeta(cl.id)
           const clConvos = convos.filter(c => c.tenant_id === cl.id)
           const clToday  = clConvos.filter(c => new Date(c.created_at||c.last_message_at||0).toDateString()===today).length
           const waC      = clConvos.filter(c => (c.channel||'whatsapp')==='whatsapp').length
@@ -929,15 +1140,14 @@ function Clientes({ clients, convos, onSelectClient, onNovoCliente }) {
                 ))}
               </div>
               <div style={{ display:'flex', gap:6 }}>
-                {meta.channels.includes('whatsapp') && <span style={{ fontSize:11, padding:'2px 9px', borderRadius:20, background:'#25D36622', color:'#25D366', fontWeight:700 }}>WhatsApp</span>}
-                {meta.channels.includes('instagram') && <span style={{ fontSize:11, padding:'2px 9px', borderRadius:20, background:'#E1306C22', color:'#E1306C', fontWeight:700 }}>Instagram</span>}
-                <span style={{ marginLeft:'auto', fontSize:12, color:C.muted }}>Ver detalhe →</span>
+                {meta.channels.includes('whatsapp') && <span style={{ fontSize:11, padding:'2px 9px', borderRadius:20, background:'#25D36622', color:'#25D366', fontWeight:700 }}>WA</span>}
+                {meta.channels.includes('instagram') && <span style={{ fontSize:11, padding:'2px 9px', borderRadius:20, background:'#E1306C22', color:'#E1306C', fontWeight:700 }}>IG</span>}
+                <span style={{ marginLeft:'auto', fontSize:12, color:C.muted }}>Ver mensagens →</span>
               </div>
             </div>
           )
         })}
 
-        {/* Card de novo cliente */}
         <div onClick={onNovoCliente}
           style={{ background:'transparent', border:`2px dashed ${C.borderL}`, borderRadius:16, padding:'20px 22px', cursor:'pointer', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:8, transition:'border-color .15s, background .15s', minHeight:180 }}
           onMouseEnter={e => { e.currentTarget.style.borderColor = C.gold; e.currentTarget.style.background = `${C.gold}08` }}
@@ -1098,7 +1308,7 @@ const NAV = [
   { id:'analytics', label:'Analytics'   },
 ]
 
-const REFRESH_INTERVAL = 15000 // 15s
+const REFRESH_INTERVAL = 15000
 
 // ─── ROOT ──────────────────────────────────────────────────────────────────────
 export default function CaroAdmin() {
@@ -1244,7 +1454,7 @@ export default function CaroAdmin() {
 
       {/* MAIN */}
       <div style={{ flex:1, overflowY:'auto', padding:'36px 36px 80px' }}>
-        <div style={{ maxWidth:1100, margin:'0 auto' }}>
+        <div style={{ maxWidth:1200, margin:'0 auto' }}>
           {selectedClient ? (
             <ClienteDetail clientId={selectedClient} convos={convos} onBack={() => setSelectedClient(null)}/>
           ) : (
